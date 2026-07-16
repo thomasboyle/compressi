@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Compressi.App/Compressi.App.csproj" />
+  <Project Path="Compressi.Core/Compressi.Core.csproj" />
+  <Project Path="Compressi.Tests/Compressi.Tests.csproj" />
+</Solution>

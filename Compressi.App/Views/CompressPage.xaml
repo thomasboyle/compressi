@@ -1,0 +1,786 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Compressi_App.Views.CompressPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Compressi_App.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid ColumnSpacing="24" Padding="24,16,24,24">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" MinWidth="420" />
+            <ColumnDefinition Width="*" MinWidth="420" />
+        </Grid.ColumnDefinitions>
+
+        <controls:GlassPanel Grid.Column="0">
+            <controls:GlassPanel.PanelContent>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="24">
+                        <StackPanel Spacing="12">
+                            <TextBlock Style="{StaticResource SubtitleTextStyle}" Text="1. Add Video" />
+
+                            <Grid x:Name="DropZone" MinHeight="200">
+                                <Rectangle
+                                    x:Name="DropZoneOutline"
+                                    RadiusX="12"
+                                    RadiusY="12"
+                                    Fill="{StaticResource DropZoneFillBrush}"
+                                    IsHitTestVisible="False"
+                                    Stroke="{StaticResource DropZoneStrokeBrush}"
+                                    StrokeDashArray="6,4"
+                                    StrokeThickness="2" />
+                                <Border
+                                    x:Name="DropZoneHitTarget"
+                                    AllowDrop="True"
+                                    Background="Transparent"
+                                    CornerRadius="12"
+                                    DragOver="DropZone_DragOver"
+                                    Drop="DropZone_Drop"
+                                    PointerEntered="DropZone_PointerEntered"
+                                    PointerExited="DropZone_PointerExited"
+                                    Tapped="DropZone_Tapped" />
+                                <StackPanel
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Spacing="12">
+                                    <ProgressRing
+                                        x:Name="ProbeProgressRing"
+                                        IsActive="False"
+                                        IsHitTestVisible="False"
+                                        Visibility="Collapsed" />
+                                    <Border
+                                        x:Name="DropZoneIcon"
+                                        Width="48"
+                                        Height="48"
+                                        Background="{StaticResource DropZoneIconBackgroundBrush}"
+                                        CornerRadius="12"
+                                        IsHitTestVisible="False">
+                                        <FontIcon
+                                            FontSize="22"
+                                            Foreground="{StaticResource PrimaryBlueBrush}"
+                                            Glyph="&#xE714;" />
+                                    </Border>
+                                    <TextBlock
+                                        x:Name="DropZoneText"
+                                        HorizontalAlignment="Center"
+                                        Foreground="{StaticResource ResultLabelBrush}"
+                                        IsHitTestVisible="False"
+                                        Style="{StaticResource BodyTextStyle}"
+                                        Text="Drag &amp; drop a video file here" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        Foreground="{StaticResource ResultLabelBrush}"
+                                        IsHitTestVisible="False"
+                                        Opacity="0.7"
+                                        Style="{StaticResource CaptionTextStyle}"
+                                        Text="or" />
+                                    <Button
+                                        x:Name="BrowseFilesButton"
+                                        Click="BrowseFilesButton_Click"
+                                        HorizontalAlignment="Center"
+                                        Style="{StaticResource GlassSecondaryButtonStyle}">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <FontIcon FontSize="14" Glyph="&#xE838;" />
+                                            <TextBlock Style="{StaticResource BodyTextStyle}" Text="Browse Files" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock
+                                x:Name="ErrorText"
+                                Foreground="#C42B2B"
+                                Style="{StaticResource CaptionTextStyle}"
+                                Visibility="Collapsed" />
+
+                            <TextBlock
+                                x:Name="InfoText"
+                                Foreground="#0078D4"
+                                Style="{StaticResource CaptionTextStyle}"
+                                Visibility="Collapsed" />
+
+                            <Border
+                                x:Name="FileChip"
+                                Padding="12"
+                                Background="{StaticResource ResultSurfaceBrush}"
+                                BorderBrush="{StaticResource ResultCardBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Visibility="Collapsed">
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border
+                                        Grid.Column="0"
+                                        Width="36"
+                                        Height="36"
+                                        Background="{StaticResource DropZoneIconBackgroundBrush}"
+                                        CornerRadius="8">
+                                        <FontIcon
+                                            FontSize="16"
+                                            Foreground="{StaticResource PrimaryBlueBrush}"
+                                            Glyph="&#xE714;" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                        <TextBlock x:Name="FileNameText" Style="{StaticResource BodyTextStyle}" />
+                                        <TextBlock
+                                            x:Name="FileMetadataText"
+                                            Foreground="{StaticResource ResultLabelBrush}"
+                                            Style="{StaticResource CaptionTextStyle}" />
+                                    </StackPanel>
+                                    <Button
+                                        x:Name="RemoveFileButton"
+                                        Grid.Column="2"
+                                        Width="32"
+                                        Height="32"
+                                        Padding="0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Click="RemoveFileButton_Click"
+                                        Content="&#xE711;"
+                                        FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                        Foreground="{StaticResource ResultLabelBrush}"
+                                        ToolTipService.ToolTip="Remove" />
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel Spacing="16">
+                            <TextBlock Style="{StaticResource SubtitleTextStyle}" Text="2. Output Settings" />
+
+                            <StackPanel Spacing="8">
+                                <TextBlock Style="{StaticResource GlassFieldLabelStyle}" Text="Format" />
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <RadioButton
+                                        x:Name="Mp4FormatButton"
+                                        Grid.Column="0"
+                                        Checked="FormatRadioButton_Checked"
+                                        Content="MP4 (AV1)"
+                                        GroupName="OutputFormat"
+                                        Style="{StaticResource GlassFormatRadioButtonStyle}"
+                                        Tag="Mp4" />
+                                    <RadioButton
+                                        x:Name="MkvFormatButton"
+                                        Grid.Column="1"
+                                        Checked="FormatRadioButton_Checked"
+                                        Content="MKV (AV1)"
+                                        GroupName="OutputFormat"
+                                        Style="{StaticResource GlassFormatRadioButtonStyle}"
+                                        Tag="Mkv" />
+                                    <RadioButton
+                                        x:Name="WebmFormatButton"
+                                        Grid.Column="2"
+                                        Checked="FormatRadioButton_Checked"
+                                        Content="WebM (AV1)"
+                                        GroupName="OutputFormat"
+                                        Style="{StaticResource GlassFormatRadioButtonStyle}"
+                                        Tag="WebM" />
+                                </Grid>
+                            </StackPanel>
+
+                            <StackPanel Spacing="8">
+                                <TextBlock Style="{StaticResource GlassFieldLabelStyle}" Text="Preset" />
+                                <ComboBox
+                                    x:Name="PresetComboBox"
+                                    SelectedIndex="1"
+                                    SelectionChanged="PresetComboBox_SelectionChanged"
+                                    Style="{StaticResource GlassInputComboBoxStyle}">
+                                    <ComboBoxItem Content="Ultra" Tag="Ultra" />
+                                    <ComboBoxItem Content="8 MB Target (Recommended)" Tag="EightMB" />
+                                    <ComboBoxItem Content="Balanced" Tag="Balanced" />
+                                </ComboBox>
+                            </StackPanel>
+
+                            <Expander
+                                Header="Advanced Options"
+                                IsExpanded="False"
+                                Style="{StaticResource GlassExpanderStyle}">
+                                <StackPanel Spacing="12" Padding="0,12,0,0">
+                                    <TextBox x:Name="ResolutionOverrideBox" Header="Resolution override" PlaceholderText="e.g. 1920x1080" />
+                                    <TextBox x:Name="FrameRateOverrideBox" Header="Frame rate override" PlaceholderText="e.g. 30" />
+                                    <TextBox x:Name="AudioBitrateOverrideBox" Header="Audio bitrate (kbps)" PlaceholderText="128" />
+                                    <ToggleSwitch x:Name="KeepAudioToggle" Header="Keep original audio track" />
+                                    <TextBox x:Name="OutputPatternBox" Header="Output filename pattern" PlaceholderText="{}{name}_compressed" />
+                                    <Button
+                                        x:Name="ChooseOutputFolderButton"
+                                        Click="ChooseOutputFolderButton_Click"
+                                        Content="Choose output folder"
+                                        Style="{StaticResource GlassSecondaryButtonStyle}" />
+                                </StackPanel>
+                            </Expander>
+
+                            <StackPanel x:Name="EncodingProgressPanel" Spacing="8" Visibility="Collapsed">
+                                <ProgressBar
+                                    x:Name="EncodingProgressBar"
+                                    Foreground="{StaticResource PrimaryBlueBrush}"
+                                    Maximum="100"
+                                    Value="0" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        x:Name="ElapsedText"
+                                        Foreground="{StaticResource ResultLabelBrush}"
+                                        Style="{StaticResource CaptionTextStyle}"
+                                        Text="Elapsed: 0:00" />
+                                    <TextBlock
+                                        x:Name="RemainingText"
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Right"
+                                        Foreground="{StaticResource ResultLabelBrush}"
+                                        Style="{StaticResource CaptionTextStyle}"
+                                        Text="Remaining: --:--" />
+                                </Grid>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        x:Name="OutputSizeText"
+                                        Foreground="{StaticResource ResultLabelBrush}"
+                                        Style="{StaticResource CaptionTextStyle}"
+                                        Text="Output: 0 MB" />
+                                    <TextBlock
+                                        x:Name="SpeedText"
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Right"
+                                        Foreground="{StaticResource ResultLabelBrush}"
+                                        Style="{StaticResource CaptionTextStyle}" />
+                                </Grid>
+                            </StackPanel>
+
+                            <Button
+                                x:Name="CancelCompressionButton"
+                                Click="CancelCompressionButton_Click"
+                                Content="Cancel Compression"
+                                HorizontalAlignment="Stretch"
+                                Style="{StaticResource GlassSecondaryButtonStyle}"
+                                Visibility="Collapsed" />
+
+                            <Button
+                                x:Name="StartCompressionButton"
+                                Click="StartCompressionButton_Click"
+                                HorizontalAlignment="Stretch"
+                                IsEnabled="False"
+                                Style="{StaticResource GlassPrimaryButtonStyle}">
+                                <StackPanel
+                                    HorizontalAlignment="Center"
+                                    Orientation="Horizontal"
+                                    Spacing="8">
+                                    <FontIcon FontSize="16" Foreground="White" Glyph="&#xE8A5;" />
+                                    <TextBlock
+                                        FontWeight="{StaticResource FontWeightSemiBold}"
+                                        Foreground="White"
+                                        Text="Start Compression" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </controls:GlassPanel.PanelContent>
+        </controls:GlassPanel>
+
+        <controls:GlassPanel Grid.Column="1">
+            <controls:GlassPanel.PanelContent>
+                <Grid>
+                    <ScrollViewer x:Name="EmptyCompletePanel" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="24">
+                            <TextBlock Style="{StaticResource SubtitleTextStyle}" Text="3. Compression Complete" />
+
+                            <StackPanel HorizontalAlignment="Center" Spacing="16">
+                                <Grid Width="120" Height="120">
+                                    <Ellipse Fill="{StaticResource FeatureBlueBackgroundBrush}" />
+                                    <FontIcon
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="40"
+                                        Foreground="{StaticResource PrimaryBlueBrush}"
+                                        Glyph="&#xE714;" />
+                                    <FontIcon
+                                        Margin="8,18,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        FontSize="14"
+                                        Foreground="{StaticResource PrimaryBlueBrush}"
+                                        Glyph="&#xE734;"
+                                        Opacity="0.7" />
+                                    <FontIcon
+                                        Margin="0,8,12,0"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Top"
+                                        FontSize="11"
+                                        Foreground="{StaticResource PrimaryBlueBrush}"
+                                        Glyph="&#xE734;"
+                                        Opacity="0.5" />
+                                    <FontIcon
+                                        Margin="0,0,8,16"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Bottom"
+                                        FontSize="13"
+                                        Foreground="{StaticResource PrimaryBlueBrush}"
+                                        Glyph="&#xE734;"
+                                        Opacity="0.6" />
+                                </Grid>
+
+                                <StackPanel HorizontalAlignment="Center" Spacing="8" MaxWidth="360">
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontWeight="{StaticResource FontWeightSemiBold}"
+                                        Style="{StaticResource TitleTextStyle}"
+                                        Text="Your results will appear here"
+                                        TextAlignment="Center" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        Foreground="{StaticResource ResultLabelBrush}"
+                                        Style="{StaticResource BodyTextStyle}"
+                                        Text="Add a video and start compression to see preview, file details and compression stats."
+                                        TextAlignment="Center"
+                                        TextWrapping="WrapWholeWords" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" HorizontalAlignment="Center" Spacing="8" MaxWidth="120">
+                                    <Border
+                                        Width="40"
+                                        Height="40"
+                                        HorizontalAlignment="Center"
+                                        Background="{StaticResource FeatureGreenBackgroundBrush}"
+                                        CornerRadius="10">
+                                        <FontIcon
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            FontSize="18"
+                                            Foreground="{StaticResource SuccessGreenBrush}"
+                                            Glyph="&#xE7C5;" />
+                                    </Border>
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontWeight="{StaticResource FontWeightSemiBold}"
+                                        Style="{StaticResource BodyTextStyle}"
+                                        Text="High Quality"
+                                        TextAlignment="Center" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        Foreground="{StaticResource ResultLabelBrush}"
+                                        Style="{StaticResource CaptionTextStyle}"
+                                        Text="AV1 encoding"
+                                        TextAlignment="Center" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" HorizontalAlignment="Center" Spacing="8" MaxWidth="120">
+                                    <Border
+                                        Width="40"
+                                        Height="40"
+                                        HorizontalAlignment="Center"
+                                        Background="{StaticResource FeaturePurpleBackgroundBrush}"
+                                        CornerRadius="10">
+                                        <FontIcon
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            FontSize="18"
+                                            Foreground="{StaticResource FeaturePurpleBrush}"
+                                            Glyph="&#xE7BF;" />
+                                    </Border>
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontWeight="{StaticResource FontWeightSemiBold}"
+                                        Style="{StaticResource BodyTextStyle}"
+                                        Text="Smaller Size"
+                                        TextAlignment="Center" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        Foreground="{StaticResource ResultLabelBrush}"
+                                        Style="{StaticResource CaptionTextStyle}"
+                                        Text="Save disk space"
+                                        TextAlignment="Center" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2" HorizontalAlignment="Center" Spacing="8" MaxWidth="120">
+                                    <Border
+                                        Width="40"
+                                        Height="40"
+                                        HorizontalAlignment="Center"
+                                        Background="{StaticResource FeatureBlueBackgroundBrush}"
+                                        CornerRadius="10">
+                                        <FontIcon
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            FontSize="18"
+                                            Foreground="{StaticResource PrimaryBlueBrush}"
+                                            Glyph="&#xE896;" />
+                                    </Border>
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontWeight="{StaticResource FontWeightSemiBold}"
+                                        Style="{StaticResource BodyTextStyle}"
+                                        Text="Fast &amp; Efficient"
+                                        TextAlignment="Center" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        Foreground="{StaticResource ResultLabelBrush}"
+                                        Style="{StaticResource CaptionTextStyle}"
+                                        Text="Optimized speed"
+                                        TextAlignment="Center" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="3" HorizontalAlignment="Center" Spacing="8" MaxWidth="120">
+                                    <Border
+                                        Width="40"
+                                        Height="40"
+                                        HorizontalAlignment="Center"
+                                        Background="{StaticResource FeatureOrangeBackgroundBrush}"
+                                        CornerRadius="10">
+                                        <FontIcon
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            FontSize="18"
+                                            Foreground="{StaticResource FeatureOrangeBrush}"
+                                            Glyph="&#xE8A5;" />
+                                    </Border>
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontWeight="{StaticResource FontWeightSemiBold}"
+                                        Style="{StaticResource BodyTextStyle}"
+                                        Text="Compare Results"
+                                        TextAlignment="Center" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        Foreground="{StaticResource ResultLabelBrush}"
+                                        Style="{StaticResource CaptionTextStyle}"
+                                        Text="Before &amp; after"
+                                        TextAlignment="Center" />
+                                </StackPanel>
+                            </Grid>
+
+                            <Border
+                                Padding="16,14"
+                                Background="{StaticResource ResultSurfaceBrush}"
+                                BorderBrush="{StaticResource SecurityBannerBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12">
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border
+                                        Grid.Column="0"
+                                        Width="36"
+                                        Height="36"
+                                        VerticalAlignment="Center"
+                                        Background="{StaticResource FeatureBlueBackgroundBrush}"
+                                        CornerRadius="8">
+                                        <FontIcon
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            FontSize="16"
+                                            Foreground="{StaticResource PrimaryBlueBrush}"
+                                            Glyph="&#xEA18;" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                        <TextBlock
+                                            FontWeight="{StaticResource FontWeightSemiBold}"
+                                            Style="{StaticResource BodyTextStyle}"
+                                            Text="Private &amp; Secure" />
+                                        <TextBlock
+                                            Foreground="{StaticResource ResultLabelBrush}"
+                                            Style="{StaticResource CaptionTextStyle}"
+                                            Text="Your files never leave your device. Everything is processed locally."
+                                            TextWrapping="WrapWholeWords" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <ScrollViewer x:Name="ResultPanel" Visibility="Collapsed">
+                        <StackPanel Spacing="16">
+                            <Grid>
+                                <TextBlock Style="{StaticResource SubtitleTextStyle}" Text="3. Compression Complete" />
+                                <StackPanel
+                                    HorizontalAlignment="Right"
+                                    Orientation="Horizontal"
+                                    Spacing="6">
+                                    <FontIcon
+                                        FontSize="16"
+                                        Foreground="{StaticResource SuccessGreenBrush}"
+                                        Glyph="&#xE73E;" />
+                                    <TextBlock
+                                        Foreground="{StaticResource SuccessGreenBrush}"
+                                        FontWeight="{StaticResource FontWeightSemiBold}"
+                                        Style="{StaticResource BodyTextStyle}"
+                                        Text="Completed" />
+                                </StackPanel>
+                            </Grid>
+
+                            <Border
+                                Background="#12000000"
+                                CornerRadius="12"
+                                MinHeight="220">
+                                <MediaPlayerElement
+                                    x:Name="PreviewPlayer"
+                                    AreTransportControlsEnabled="True"
+                                    AutoPlay="False" />
+                            </Border>
+
+                            <Border
+                                Background="{StaticResource ResultSurfaceBrush}"
+                                BorderBrush="{StaticResource ResultCardBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Padding="16,12">
+                                <StackPanel Spacing="0">
+                                    <Grid Margin="0,0,0,12" ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="108" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            FontWeight="{StaticResource FontWeightSemiBold}"
+                                            Foreground="{StaticResource PrimaryBlueBrush}"
+                                            Style="{StaticResource BodyTextStyle}"
+                                            Text="Original File" />
+                                        <TextBlock
+                                            Grid.Column="2"
+                                            FontWeight="{StaticResource FontWeightSemiBold}"
+                                            Foreground="{StaticResource SuccessGreenBrush}"
+                                            Style="{StaticResource BodyTextStyle}"
+                                            Text="Compressed File" />
+                                    </Grid>
+
+                                    <Grid
+                                        Padding="0,10"
+                                        ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="108" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Foreground="{StaticResource ResultLabelBrush}"
+                                            Style="{StaticResource BodyTextStyle}"
+                                            Text="File Name" />
+                                        <TextBlock
+                                            x:Name="OriginalNameText"
+                                            Grid.Column="1"
+                                            Style="{StaticResource BodyTextStyle}" />
+                                        <TextBlock
+                                            x:Name="CompressedNameText"
+                                            Grid.Column="2"
+                                            Style="{StaticResource BodyTextStyle}" />
+                                    </Grid>
+                                    <Border BorderBrush="{StaticResource ResultCardBorderBrush}" BorderThickness="0,1,0,0" />
+
+                                    <Grid
+                                        Padding="0,10"
+                                        ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="108" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Foreground="{StaticResource ResultLabelBrush}"
+                                            Style="{StaticResource BodyTextStyle}"
+                                            Text="Format" />
+                                        <TextBlock
+                                            x:Name="OriginalFormatText"
+                                            Grid.Column="1"
+                                            Style="{StaticResource BodyTextStyle}" />
+                                        <TextBlock
+                                            x:Name="CompressedFormatText"
+                                            Grid.Column="2"
+                                            Style="{StaticResource BodyTextStyle}" />
+                                    </Grid>
+                                    <Border BorderBrush="{StaticResource ResultCardBorderBrush}" BorderThickness="0,1,0,0" />
+
+                                    <Grid
+                                        Padding="0,10"
+                                        ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="108" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Foreground="{StaticResource ResultLabelBrush}"
+                                            Style="{StaticResource BodyTextStyle}"
+                                            Text="Resolution" />
+                                        <TextBlock
+                                            x:Name="OriginalResolutionText"
+                                            Grid.Column="1"
+                                            Style="{StaticResource BodyTextStyle}" />
+                                        <TextBlock
+                                            x:Name="CompressedResolutionText"
+                                            Grid.Column="2"
+                                            Style="{StaticResource BodyTextStyle}" />
+                                    </Grid>
+                                    <Border BorderBrush="{StaticResource ResultCardBorderBrush}" BorderThickness="0,1,0,0" />
+
+                                    <Grid
+                                        Padding="0,10"
+                                        ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="108" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Foreground="{StaticResource ResultLabelBrush}"
+                                            Style="{StaticResource BodyTextStyle}"
+                                            Text="Duration" />
+                                        <TextBlock
+                                            x:Name="OriginalDurationText"
+                                            Grid.Column="1"
+                                            Style="{StaticResource BodyTextStyle}" />
+                                        <TextBlock
+                                            x:Name="CompressedDurationText"
+                                            Grid.Column="2"
+                                            Style="{StaticResource BodyTextStyle}" />
+                                    </Grid>
+                                    <Border BorderBrush="{StaticResource ResultCardBorderBrush}" BorderThickness="0,1,0,0" />
+
+                                    <Grid
+                                        Padding="0,10"
+                                        ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="108" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Foreground="{StaticResource ResultLabelBrush}"
+                                            Style="{StaticResource BodyTextStyle}"
+                                            Text="File Size" />
+                                        <TextBlock
+                                            x:Name="OriginalSizeText"
+                                            Grid.Column="1"
+                                            Style="{StaticResource BodyTextStyle}" />
+                                        <TextBlock
+                                            x:Name="CompressedSizeText"
+                                            Grid.Column="2"
+                                            Style="{StaticResource BodyTextStyle}" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border
+                                    Grid.Column="0"
+                                    Padding="16,12"
+                                    Background="{StaticResource ResultSurfaceBrush}"
+                                    BorderBrush="{StaticResource ResultCardBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="12">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock
+                                            Foreground="{StaticResource ResultLabelBrush}"
+                                            Style="{StaticResource BodyTextStyle}"
+                                            Text="Compression Ratio" />
+                                        <TextBlock x:Name="RatioStatText" Style="{StaticResource ResultStatValueStyle}" />
+                                        <TextBlock
+                                            x:Name="SavedStatText"
+                                            Foreground="{StaticResource SuccessGreenBrush}"
+                                            Style="{StaticResource BodyTextStyle}" />
+                                    </StackPanel>
+                                </Border>
+                                <Border
+                                    Grid.Column="1"
+                                    Padding="16,12"
+                                    Background="{StaticResource ResultSurfaceBrush}"
+                                    BorderBrush="{StaticResource ResultCardBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="12">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock
+                                            Foreground="{StaticResource ResultLabelBrush}"
+                                            Style="{StaticResource BodyTextStyle}"
+                                            Text="Time Taken" />
+                                        <TextBlock x:Name="TimeStatText" Style="{StaticResource ResultStatValueStyle}" />
+                                        <TextBlock
+                                            Foreground="{StaticResource SuccessGreenBrush}"
+                                            Style="{StaticResource BodyTextStyle}"
+                                            Text="Completed" />
+                                    </StackPanel>
+                                </Border>
+                                <Border
+                                    Grid.Column="2"
+                                    Padding="16,12"
+                                    Background="{StaticResource ResultSurfaceBrush}"
+                                    BorderBrush="{StaticResource ResultCardBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="12">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock
+                                            Foreground="{StaticResource ResultLabelBrush}"
+                                            Style="{StaticResource BodyTextStyle}"
+                                            Text="Average Speed" />
+                                        <TextBlock x:Name="SpeedStatText" Style="{StaticResource ResultStatValueStyle}" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <Button
+                                    x:Name="OpenOutputFileButton"
+                                    Click="OpenOutputFileButton_Click"
+                                    Style="{StaticResource GlassSecondaryButtonStyle}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon FontSize="14" Glyph="&#xE8E5;" />
+                                        <TextBlock Style="{StaticResource BodyTextStyle}" Text="Open Output File" />
+                                    </StackPanel>
+                                </Button>
+                                <Button
+                                    x:Name="OpenOutputFolderButton"
+                                    Click="OpenOutputFolderButton_Click"
+                                    Style="{StaticResource GlassSecondaryButtonStyle}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon FontSize="14" Glyph="&#xE838;" />
+                                        <TextBlock Style="{StaticResource BodyTextStyle}" Text="Open Output Folder" />
+                                    </StackPanel>
+                                </Button>
+                                <Button
+                                    x:Name="CompressAnotherButton"
+                                    Click="CompressAnotherButton_Click"
+                                    Style="{StaticResource GlassSecondaryButtonStyle}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon FontSize="14" Glyph="&#xE72C;" />
+                                        <TextBlock Style="{StaticResource BodyTextStyle}" Text="Compress Another" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </controls:GlassPanel.PanelContent>
+        </controls:GlassPanel>
+    </Grid>
+</Page>

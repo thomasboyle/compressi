@@ -1,0 +1,39 @@
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+ARM64/
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.cache
+*.log
+
+## Visual Studio / Rider
+.vs/
+.idea/
+*.rsuser
+
+## NuGet
+*.nupkg
+packages/
+
+## MSIX / packaging
+AppPackages/
+installer/Compressi-Setup/
+installer/certs/
+installer/output/
+*.appx
+*.appxbundle
+*.msix
+*.msixbundle
+*.pfx
+publish-log.txt
+
+## FFmpeg binaries (download separately for dev)
+Compressi.App/Assets/ffmpeg/*.exe
+
+## Local scratch
+_prune_git.txt

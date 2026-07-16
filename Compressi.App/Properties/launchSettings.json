@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Compressi.App (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "Compressi.App (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
