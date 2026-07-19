@@ -105,9 +105,14 @@ if (-not $setupExe) {
     throw "Setup.exe was not produced in $OutputDir"
 }
 
+# Stable name for GitHub releases/latest/download (versioned name kept for archives).
+$stableSetup = Join-Path $OutputDir 'Compressi-Setup-x64.exe'
+Copy-Item -LiteralPath $setupExe.FullName -Destination $stableSetup -Force
+
 Write-Host ""
 Write-Host "Installer ready:"
 Write-Host "  $($setupExe.FullName)"
+Write-Host "  $stableSetup"
 Write-Host "  Size: $([math]::Round($setupExe.Length / 1MB, 1)) MB"
 Write-Host ""
 Write-Host "Double-click the Setup.exe to install Compressi."
