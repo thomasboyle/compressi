@@ -23,48 +23,25 @@ jobs:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       !contains(github.event.head_commit.message, '[skip release]')
+    # windows-latest already includes .NET 8 SDKs and Inno Setup 6.
     runs-on: windows-latest
-    timeout-minutes: 90
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v6
+      - name: Cache NuGet packages
+        uses: actions/cache@v6
         with:
-          dotnet-version: '8.0.x'
-          cache: true
-          cache-dependency-path: |
-            Compressi.App/Compressi.App.csproj
-            Compressi.Core/Compressi.Core.csproj
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Compressi.App/Compressi.App.csproj', 'Compressi.Core/Compressi.Core.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
 
-      - name: Install tools
+      - name: Download FFmpeg
         shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $PSNativeCommandUseErrorActionPreference = $false
-          $sw = [System.Diagnostics.Stopwatch]::StartNew()
-
-          $inno = Start-Job -ScriptBlock {
-            choco install innosetup --yes --no-progress
-            if ($LASTEXITCODE -ne 0) { throw "choco install innosetup failed: $LASTEXITCODE" }
-          }
-          $ffmpeg = Start-Job -ScriptBlock {
-            Set-Location $using:PWD
-            & .\scripts\get-ffmpeg.ps1
-          }
-
-          try {
-            Wait-Job $inno, $ffmpeg | Out-Null
-            Receive-Job $inno -ErrorAction Stop
-            Receive-Job $ffmpeg -ErrorAction Stop
-          }
-          finally {
-            Remove-Job $inno, $ffmpeg -Force -ErrorAction SilentlyContinue
-          }
-
-          Write-Host ("[time] install tools: {0:N1}s" -f $sw.Elapsed.TotalSeconds)
+        run: .\scripts\get-ffmpeg.ps1
 
       - name: Resolve next version
         id: version
@@ -93,11 +70,13 @@ jobs:
           "version=$version" >> $env:GITHUB_OUTPUT
           "tag=$releaseTag" >> $env:GITHUB_OUTPUT
           Write-Host "Next release: $releaseTag"
+          Write-Host "dotnet SDK:"
+          dotnet --list-sdks
           exit 0
 
       - name: Build installer
         shell: pwsh
-        run: .\scripts\build-installer.ps1 -Version '${{ steps.version.outputs.version }}'
+        run: .\scripts\build-installer.ps1 -Version '${{ steps.version.outputs.version }}' -Compression zip
 
       - name: Publish GitHub release
         shell: pwsh
