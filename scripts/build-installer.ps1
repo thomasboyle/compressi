@@ -23,8 +23,8 @@ if (-not $PSBoundParameters.ContainsKey('ReadyToRun')) {
     $ReadyToRun = -not $isCI
 }
 if (-not $PSBoundParameters.ContainsKey('Compression')) {
-    # zip is much faster for CI; local builds keep max compression for smaller downloads.
-    $Compression = if ($isCI) { 'zip' } else { 'lzma2/max' }
+    # lzma2/fast beat zip on CI wall-clock; local builds keep max for smaller downloads.
+    $Compression = if ($isCI) { 'lzma2/fast' } else { 'lzma2/max' }
 }
 if (-not $PSBoundParameters.ContainsKey('SolidCompression')) {
     $SolidCompression = -not $isCI

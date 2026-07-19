@@ -39,7 +39,15 @@ jobs:
           restore-keys: |
             nuget-${{ runner.os }}-
 
+      - name: Cache FFmpeg
+        id: cache-ffmpeg
+        uses: actions/cache@v6
+        with:
+          path: Compressi.App/Assets/ffmpeg
+          key: ffmpeg-win64-gpl-v1
+
       - name: Download FFmpeg
+        if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
         shell: pwsh
         run: .\scripts\get-ffmpeg.ps1
 
@@ -70,13 +78,11 @@ jobs:
           "version=$version" >> $env:GITHUB_OUTPUT
           "tag=$releaseTag" >> $env:GITHUB_OUTPUT
           Write-Host "Next release: $releaseTag"
-          Write-Host "dotnet SDK:"
-          dotnet --list-sdks
           exit 0
 
       - name: Build installer
         shell: pwsh
-        run: .\scripts\build-installer.ps1 -Version '${{ steps.version.outputs.version }}' -Compression zip
+        run: .\scripts\build-installer.ps1 -Version '${{ steps.version.outputs.version }}'
 
       - name: Publish GitHub release
         shell: pwsh
