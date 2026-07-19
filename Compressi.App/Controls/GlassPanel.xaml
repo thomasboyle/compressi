@@ -7,10 +7,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <!-- Double outline reads more like a retro window frame -->
     <Border
         x:Name="ShadowHost"
-        Padding="2"
+        Padding="1"
         Background="{ThemeResource GlassPanelBorderBrush}"
         CornerRadius="{StaticResource GlassPanelCornerRadius}">
 
@@ -20,11 +19,11 @@
                 Background="{ThemeResource GlassPanelFillBrush}"
                 BorderBrush="#66FFFFFF"
                 BorderThickness="1"
-                CornerRadius="14" />
+                CornerRadius="9" />
 
             <Border
                 x:Name="GrainOverlay"
-                CornerRadius="14"
+                CornerRadius="9"
                 IsHitTestVisible="False"
                 Opacity="0.28">
                 <Border.Background>
@@ -36,7 +35,7 @@
 
             <ContentPresenter
                 x:Name="PanelContentHost"
-                Margin="22"
+                Margin="14"
                 Content="{x:Bind PanelContent, Mode=OneWay}" />
         </Grid>
     </Border>

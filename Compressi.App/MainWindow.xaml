@@ -28,76 +28,67 @@
 
         <TitleBar
             x:Name="AppTitleBar"
+            Height="40"
             Title="Compressi"
-            Foreground="{ThemeResource AppInkBrush}">
-            <TitleBar.IconSource>
-                <ImageIconSource ImageSource="Assets/AppLogo.png" />
-            </TitleBar.IconSource>
-        </TitleBar>
+            Foreground="{ThemeResource AppInkBrush}" />
 
-        <NavigationView
-            x:Name="NavView"
+        <Border
             Grid.Row="1"
-            FontFamily="{StaticResource AppPixelFontFamily}"
-            IsBackButtonVisible="Collapsed"
-            IsSettingsVisible="False"
-            OpenPaneLength="228"
-            PaneDisplayMode="Left"
-            SelectionChanged="NavView_SelectionChanged">
+            Margin="3,0,3,3"
+            BorderBrush="{ThemeResource GlassPanelBorderBrush}"
+            BorderThickness="1"
+            CornerRadius="10">
+            <NavigationView
+                x:Name="NavView"
+                FontFamily="{StaticResource AppPixelFontFamily}"
+                AlwaysShowHeader="False"
+                CompactPaneLength="0"
+                IsBackButtonVisible="Collapsed"
+                IsPaneOpen="True"
+                IsPaneToggleButtonVisible="False"
+                IsSettingsVisible="False"
+                OpenPaneLength="166"
+                PaneDisplayMode="Left"
+                SelectionChanged="NavView_SelectionChanged">
 
-            <NavigationView.Resources>
-                <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="#F7F0E2" />
-                <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#F7F0E2" />
-                <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
-                <ImageBrush
-                    x:Key="NavigationViewItemBackgroundSelected"
-                    ImageSource="ms-appx:///Assets/ui/pattern-stipple-fill.png"
-                    Stretch="UniformToFill" />
-                <ImageBrush
-                    x:Key="NavigationViewItemBackgroundSelectedPointerOver"
-                    ImageSource="ms-appx:///Assets/ui/pattern-stipple-fill.png"
-                    Stretch="UniformToFill" />
-                <ImageBrush
-                    x:Key="NavigationViewItemBackgroundSelectedPressed"
-                    ImageSource="ms-appx:///Assets/ui/pattern-stipple-button.png"
-                    Stretch="UniformToFill" />
-                <SolidColorBrush x:Key="NavigationViewItemForeground" Color="#2A3220" />
-                <SolidColorBrush x:Key="NavigationViewItemForegroundSelected" Color="#2A3220" />
-                <SolidColorBrush x:Key="NavigationViewItemForegroundPointerOver" Color="#2A3220" />
-                <SolidColorBrush x:Key="NavigationViewItemForegroundSelectedPointerOver" Color="#2A3220" />
-                <Thickness x:Key="NavigationViewContentMargin">0</Thickness>
-                <Thickness x:Key="NavigationViewContentGridBorderThickness">0</Thickness>
-                <CornerRadius x:Key="NavigationViewContentGridCornerRadius">0</CornerRadius>
-                <CornerRadius x:Key="NavigationViewItemCornerRadius">10</CornerRadius>
-                <Style TargetType="NavigationViewItem">
-                    <Setter Property="FontFamily" Value="{StaticResource AppPixelFontBoldFamily}" />
-                    <Setter Property="FontSize" Value="14" />
-                    <Setter Property="Margin" Value="4,2" />
-                </Style>
-            </NavigationView.Resources>
+                <NavigationView.Resources>
+                    <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="#F7F0E2" />
+                    <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#F7F0E2" />
+                    <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
+                    <ImageBrush
+                        x:Key="NavigationViewItemBackgroundSelected"
+                        ImageSource="ms-appx:///Assets/ui/pattern-stipple-fill.png"
+                        Stretch="UniformToFill" />
+                    <ImageBrush
+                        x:Key="NavigationViewItemBackgroundSelectedPointerOver"
+                        ImageSource="ms-appx:///Assets/ui/pattern-stipple-fill.png"
+                        Stretch="UniformToFill" />
+                    <ImageBrush
+                        x:Key="NavigationViewItemBackgroundSelectedPressed"
+                        ImageSource="ms-appx:///Assets/ui/pattern-stipple-button.png"
+                        Stretch="UniformToFill" />
+                    <SolidColorBrush x:Key="NavigationViewItemForeground" Color="#2A3220" />
+                    <SolidColorBrush x:Key="NavigationViewItemForegroundSelected" Color="#2A3220" />
+                    <SolidColorBrush x:Key="NavigationViewItemForegroundPointerOver" Color="#2A3220" />
+                    <SolidColorBrush x:Key="NavigationViewItemForegroundSelectedPointerOver" Color="#2A3220" />
+                    <Thickness x:Key="NavigationViewContentMargin">0</Thickness>
+                    <Thickness x:Key="NavigationViewContentGridBorderThickness">0</Thickness>
+                    <CornerRadius x:Key="NavigationViewContentGridCornerRadius">0</CornerRadius>
+                    <CornerRadius x:Key="NavigationViewItemCornerRadius">4</CornerRadius>
+                    <Style TargetType="NavigationViewItem">
+                        <Setter Property="Height" Value="44" />
+                        <Setter Property="FontFamily" Value="{StaticResource AppPixelFontBoldFamily}" />
+                        <Setter Property="FontSize" Value="14" />
+                        <Setter Property="Margin" Value="10,2" />
+                    </Style>
+                </NavigationView.Resources>
 
-            <NavigationView.PaneHeader>
-                <StackPanel
-                    Margin="12,8,12,8"
-                    Orientation="Horizontal"
-                    Spacing="10">
-                    <Image
-                        Width="36"
-                        Height="36"
-                        Source="Assets/AppLogo.png"
-                        Stretch="Uniform" />
-                    <TextBlock
-                        VerticalAlignment="Center"
-                        FontFamily="{StaticResource AppPixelFontBoldFamily}"
-                        FontSize="20"
-                        FontWeight="Bold"
-                        Foreground="{ThemeResource AppInkBrush}"
-                        Text="Compressi" />
-                </StackPanel>
-            </NavigationView.PaneHeader>
+                <NavigationView.PaneHeader>
+                    <Border Height="8" />
+                </NavigationView.PaneHeader>
 
-            <NavigationView.MenuItems>
-                <NavigationViewItem Content="Compress" Tag="Compress">
+                <NavigationView.MenuItems>
+                    <NavigationViewItem Content="Compress" Tag="Compress">
                     <NavigationViewItem.Icon>
                         <BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/ui/nav-compress.png" />
                     </NavigationViewItem.Icon>
@@ -116,33 +107,34 @@
                     <NavigationViewItem.Icon>
                         <BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/ui/nav-about.png" />
                     </NavigationViewItem.Icon>
-                </NavigationViewItem>
-            </NavigationView.MenuItems>
+                    </NavigationViewItem>
+                </NavigationView.MenuItems>
 
-            <NavigationView.PaneFooter>
-                <StackPanel
-                    Margin="12,8,12,20"
-                    HorizontalAlignment="Center"
-                    Spacing="6">
-                    <Image
-                        Width="148"
-                        Height="178"
+                <NavigationView.PaneFooter>
+                    <StackPanel
+                        Margin="8,0,8,18"
                         HorizontalAlignment="Center"
-                        Source="ms-appx:///Assets/ui/smoothie.png"
-                        Stretch="Uniform" />
-                    <TextBlock
-                        HorizontalAlignment="Center"
-                        FontFamily="{StaticResource AppPixelFontFamily}"
-                        FontSize="11"
-                        FontStyle="Italic"
-                        Foreground="{StaticResource ResultLabelBrush}"
-                        Text="Smooth results, every time."
-                        TextAlignment="Center"
-                        TextWrapping="WrapWholeWords" />
-                </StackPanel>
-            </NavigationView.PaneFooter>
+                        Spacing="4">
+                        <Image
+                            Width="140"
+                            Height="155"
+                            HorizontalAlignment="Center"
+                            Source="ms-appx:///Assets/ui/smoothie.png"
+                            Stretch="Uniform" />
+                        <TextBlock
+                            Width="124"
+                            HorizontalAlignment="Center"
+                            FontFamily="{StaticResource AppPixelFontFamily}"
+                            FontSize="12"
+                            Foreground="{StaticResource ResultLabelBrush}"
+                            Text="Smooth results,&#x0a;every time."
+                            TextAlignment="Center"
+                            TextWrapping="WrapWholeWords" />
+                    </StackPanel>
+                </NavigationView.PaneFooter>
 
-            <ContentPresenter x:Name="ContentHost" />
-        </NavigationView>
+                <ContentPresenter x:Name="ContentHost" />
+            </NavigationView>
+        </Border>
     </Grid>
 </Window>

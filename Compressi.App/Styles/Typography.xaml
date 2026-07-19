@@ -36,7 +36,8 @@
         <Setter Property="FontFamily" Value="{StaticResource AppPixelFontBoldFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeSubtitle}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightBold}" />
-        <Setter Property="Foreground" Value="{ThemeResource AppInkBrush}" />
+        <Setter Property="Foreground" Value="#FF4F5838" />
+        <Setter Property="TextDecorations" Value="Underline" />
     </Style>
 
     <Style x:Key="BodyTextStyle" TargetType="TextBlock">

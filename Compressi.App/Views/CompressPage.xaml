@@ -8,20 +8,20 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid ColumnSpacing="24" Padding="24,16,24,24">
+    <Grid ColumnSpacing="8" Padding="8,4,4,4">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" MinWidth="420" />
-            <ColumnDefinition Width="*" MinWidth="420" />
+            <ColumnDefinition Width="47*" />
+            <ColumnDefinition Width="53*" />
         </Grid.ColumnDefinitions>
 
         <controls:GlassPanel Grid.Column="0">
             <controls:GlassPanel.PanelContent>
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Spacing="24">
-                        <StackPanel Spacing="12">
+                    <StackPanel Spacing="18">
+                        <StackPanel Spacing="8">
                             <TextBlock Style="{StaticResource SubtitleTextStyle}" Text="1. Add Video" />
 
-                            <Grid x:Name="DropZone" MinHeight="200">
+                            <Grid x:Name="DropZone" MinHeight="194">
                                 <Rectangle
                                     x:Name="DropZoneOutline"
                                     RadiusX="10"
@@ -44,7 +44,7 @@
                                 <StackPanel
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
-                                    Spacing="12">
+                                    Spacing="6">
                                     <ProgressRing
                                         x:Name="ProbeProgressRing"
                                         IsActive="False"
@@ -52,8 +52,8 @@
                                         Visibility="Collapsed" />
                                     <Image
                                         x:Name="DropZoneIcon"
-                                        Width="56"
-                                        Height="56"
+                                        Width="52"
+                                        Height="52"
                                         IsHitTestVisible="False"
                                         Source="ms-appx:///Assets/ui/icon-camera-add.png"
                                         Stretch="Uniform" />
@@ -87,9 +87,9 @@
                                     </Button>
                                 </StackPanel>
                                 <Image
-                                    Width="56"
-                                    Height="56"
-                                    Margin="0,0,10,8"
+                                    Width="94"
+                                    Height="118"
+                                    Margin="0,0,4,0"
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Bottom"
                                     IsHitTestVisible="False"
@@ -155,12 +155,12 @@
                             </Border>
                         </StackPanel>
 
-                        <StackPanel Spacing="16">
+                        <StackPanel Spacing="8">
                             <TextBlock Style="{StaticResource SubtitleTextStyle}" Text="2. Output Settings" />
 
-                            <StackPanel Spacing="8">
+                            <StackPanel Spacing="4">
                                 <TextBlock Style="{StaticResource GlassFieldLabelStyle}" Text="Format" />
-                                <Grid ColumnSpacing="8">
+                                <Grid ColumnSpacing="0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="*" />
@@ -197,10 +197,11 @@
                                 <TextBlock
                                     Foreground="{StaticResource ResultLabelBrush}"
                                     Style="{StaticResource CaptionTextStyle}"
-                                    Text="MP4 is best for sharing. All formats use AV1." />
+                                    Text="MP4 is best for sharing. All formats use AV1."
+                                    Visibility="Collapsed" />
                             </StackPanel>
 
-                            <StackPanel Spacing="8">
+                            <StackPanel Spacing="4">
                                 <TextBlock Style="{StaticResource GlassFieldLabelStyle}" Text="Preset" />
                                 <ComboBox
                                     x:Name="PresetComboBox"
@@ -333,34 +334,25 @@
             <controls:GlassPanel.PanelContent>
                 <Grid>
                     <ScrollViewer x:Name="EmptyCompletePanel" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="24">
+                        <StackPanel Spacing="16">
                             <TextBlock Style="{StaticResource SubtitleTextStyle}" Text="3. Results" />
 
                             <Grid>
-                                <Image
-                                    Width="220"
-                                    Height="180"
-                                    Margin="0,24,0,0"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Top"
-                                    IsHitTestVisible="False"
-                                    Opacity="0.35"
-                                    Source="ms-appx:///Assets/ui/deco-results-wash.png"
-                                    Stretch="UniformToFill" />
-
                                 <StackPanel HorizontalAlignment="Center" Spacing="16">
                                     <Image
-                                        Width="140"
-                                        Height="140"
+                                        Width="128"
+                                        Height="112"
                                         HorizontalAlignment="Center"
                                         Source="ms-appx:///Assets/ui/results-empty.png"
                                         Stretch="Uniform" />
 
-                                    <StackPanel HorizontalAlignment="Center" Spacing="8" MaxWidth="360">
+                                    <StackPanel HorizontalAlignment="Center" Spacing="6" MaxWidth="360">
                                         <TextBlock
                                             HorizontalAlignment="Center"
+                                            FontSize="16"
                                             FontWeight="{StaticResource FontWeightSemiBold}"
-                                            Style="{StaticResource TitleTextStyle}"
+                                            FontFamily="{StaticResource AppPixelFontBoldFamily}"
+                                            Foreground="{ThemeResource AppInkBrush}"
                                             Text="Your results will appear here"
                                             TextAlignment="Center" />
                                         <TextBlock
@@ -375,11 +367,11 @@
                             </Grid>
 
                             <Border
-                                Padding="16,14"
+                                Padding="12,10"
                                 Background="{StaticResource SecurityBannerFillBrush}"
                                 BorderBrush="{StaticResource SecurityBannerBorderBrush}"
                                 BorderThickness="1"
-                                CornerRadius="12">
+                                CornerRadius="4">
                                 <Grid ColumnSpacing="12">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
@@ -387,8 +379,8 @@
                                     </Grid.ColumnDefinitions>
                                     <Image
                                         Grid.Column="0"
-                                        Width="28"
-                                        Height="28"
+                                        Width="26"
+                                        Height="26"
                                         VerticalAlignment="Center"
                                         Source="ms-appx:///Assets/ui/icon-shield.png"
                                         Stretch="Uniform" />

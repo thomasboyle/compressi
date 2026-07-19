@@ -20,6 +20,7 @@ public sealed partial class MainWindow : Window
         var t0 = System.Diagnostics.Stopwatch.GetTimestamp();
         InitializeComponent();
         PerfProbe.MarkDuration("mainwindow_initialize_component", t0);
+        AppWindow.Resize(new Windows.Graphics.SizeInt32(1024, 565));
 
         var backdropStart = System.Diagnostics.Stopwatch.GetTimestamp();
         ConfigureSystemBackdrop();
