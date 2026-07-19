@@ -17,7 +17,7 @@
 
         <TitleBar x:Name="AppTitleBar" Title="Compressi">
             <TitleBar.IconSource>
-                <ImageIconSource ImageSource="Assets/Square44x44Logo.png" />
+                <ImageIconSource ImageSource="Assets/AppLogo.png" />
             </TitleBar.IconSource>
         </TitleBar>
 
@@ -29,14 +29,40 @@
             PaneDisplayMode="Left"
             SelectionChanged="NavView_SelectionChanged">
 
+            <NavigationView.PaneHeader>
+                <StackPanel
+                    Margin="12,8,12,4"
+                    Orientation="Horizontal"
+                    Spacing="10">
+                    <Image
+                        Width="36"
+                        Height="36"
+                        Source="Assets/AppLogo.png"
+                        Stretch="Uniform" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Text="Compressi" />
+                </StackPanel>
+            </NavigationView.PaneHeader>
+
             <NavigationView.MenuItems>
-                <NavigationViewItem Content="Compress" Icon="Play" Tag="Compress" />
+                <NavigationViewItem Content="Compress" Tag="Compress">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE7C3;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
                 <NavigationViewItem Content="History" Icon="Clock" Tag="History" />
                 <NavigationViewItem Content="Settings" Icon="Setting" Tag="Settings" />
-                <NavigationViewItem Content="About" Icon="Help" Tag="About" />
+                <NavigationViewItem Content="About" Tag="About">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE946;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
             </NavigationView.MenuItems>
 
-            <Frame x:Name="ContentFrame" />
+            <ContentPresenter x:Name="ContentHost" />
         </NavigationView>
     </Grid>
 </Window>

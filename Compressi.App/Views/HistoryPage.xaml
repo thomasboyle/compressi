@@ -15,81 +15,107 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0" Style="{StaticResource TitleTextStyle}" Text="History" />
 
+                    <InfoBar
+                        x:Name="HistoryInfoBar"
+                        Grid.Row="1"
+                        IsClosable="True"
+                        IsOpen="False" />
+
                     <TextBox
                         x:Name="SearchBox"
-                        Grid.Row="1"
+                        Grid.Row="2"
                         PlaceholderText="Search by filename"
                         TextChanged="SearchBox_TextChanged" />
 
-                    <ListView x:Name="HistoryList" Grid.Row="2">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <Grid Padding="8" ColumnSpacing="12">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel Spacing="4">
-                                        <TextBlock FontWeight="SemiBold" Text="{Binding SourceName}" />
-                                        <TextBlock
-                                            Opacity="0.7"
-                                            Style="{StaticResource CaptionTextStyle}"
-                                            Text="{Binding CreatedAtDisplay}" />
-                                        <TextBlock
-                                            Opacity="0.7"
-                                            Style="{StaticResource CaptionTextStyle}"
-                                            Text="{Binding StatusDisplay}" />
-                                        <TextBlock
-                                            Opacity="0.7"
-                                            Style="{StaticResource CaptionTextStyle}">
-                                            <Run Text="{Binding OriginalSizeDisplay}" />
-                                            <Run Text=" → " />
-                                            <Run Text="{Binding CompressedSizeDisplay}" />
-                                            <Run Text=" (" />
-                                            <Run Text="{Binding RatioDisplay}" />
-                                            <Run Text=")" />
-                                        </TextBlock>
-                                    </StackPanel>
-                                    <StackPanel
-                                        Grid.Column="1"
-                                        Orientation="Horizontal"
-                                        Spacing="8"
-                                        VerticalAlignment="Center">
-                                        <Button
-                                            Click="OpenFolderButton_Click"
-                                            Content="Folder"
-                                            Style="{StaticResource GlassSecondaryButtonStyle}"
-                                            Tag="{Binding}" />
-                                        <Button
-                                            Click="RerunButton_Click"
-                                            Content="Re-run"
-                                            Style="{StaticResource GlassSecondaryButtonStyle}"
-                                            Tag="{Binding}" />
-                                        <Button
-                                            Click="DeleteButton_Click"
-                                            Content="Delete"
-                                            Style="{StaticResource GlassSecondaryButtonStyle}"
-                                            Tag="{Binding}" />
-                                    </StackPanel>
-                                </Grid>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+                    <Grid Grid.Row="3">
+                        <ListView x:Name="HistoryList">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Padding="8" ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Spacing="4">
+                                            <TextBlock FontWeight="SemiBold" Text="{Binding SourceName}" />
+                                            <TextBlock
+                                                Opacity="0.7"
+                                                Style="{StaticResource CaptionTextStyle}"
+                                                Text="{Binding CreatedAtDisplay}" />
+                                            <TextBlock
+                                                Opacity="0.7"
+                                                Style="{StaticResource CaptionTextStyle}"
+                                                Text="{Binding StatusDisplay}" />
+                                            <TextBlock
+                                                Opacity="0.7"
+                                                Style="{StaticResource CaptionTextStyle}">
+                                                <Run Text="{Binding OriginalSizeDisplay}" />
+                                                <Run Text=" → " />
+                                                <Run Text="{Binding CompressedSizeDisplay}" />
+                                                <Run Text=" (" />
+                                                <Run Text="{Binding RatioDisplay}" />
+                                                <Run Text=")" />
+                                            </TextBlock>
+                                        </StackPanel>
+                                        <StackPanel
+                                            Grid.Column="1"
+                                            Orientation="Horizontal"
+                                            Spacing="8"
+                                            VerticalAlignment="Center">
+                                            <Button
+                                                Click="OpenFolderButton_Click"
+                                                Content="Folder"
+                                                Style="{StaticResource GlassSecondaryButtonStyle}"
+                                                Tag="{Binding}" />
+                                            <Button
+                                                Click="RerunButton_Click"
+                                                Content="Re-run"
+                                                Style="{StaticResource GlassSecondaryButtonStyle}"
+                                                Tag="{Binding}" />
+                                            <Button
+                                                Click="DeleteButton_Click"
+                                                Content="Delete"
+                                                Style="{StaticResource GlassDangerButtonStyle}"
+                                                Tag="{Binding}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
 
-                    <TextBlock
-                        x:Name="EmptyText"
-                        Grid.Row="2"
-                        HorizontalAlignment="Center"
-                        Opacity="0.5"
-                        Style="{StaticResource BodyTextStyle}"
-                        Text="No compression history yet."
-                        VerticalAlignment="Center"
-                        Visibility="Collapsed" />
+                        <StackPanel
+                            x:Name="EmptyPanel"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Spacing="12"
+                            Visibility="Collapsed">
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                Opacity="0.7"
+                                Style="{StaticResource BodyTextStyle}"
+                                Text="No compression history yet."
+                                TextAlignment="Center" />
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                MaxWidth="360"
+                                Opacity="0.55"
+                                Style="{StaticResource CaptionTextStyle}"
+                                Text="Finished compressions appear here so you can open the output folder or re-run with the same settings."
+                                TextAlignment="Center"
+                                TextWrapping="WrapWholeWords" />
+                            <Button
+                                HorizontalAlignment="Center"
+                                Click="GoToCompressButton_Click"
+                                Content="Compress a video"
+                                Style="{StaticResource GlassPrimaryButtonStyle}" />
+                        </StackPanel>
+                    </Grid>
                 </Grid>
             </controls:GlassPanel.PanelContent>
         </controls:GlassPanel>

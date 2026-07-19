@@ -89,17 +89,18 @@
                                 </StackPanel>
                             </Grid>
 
-                            <TextBlock
-                                x:Name="ErrorText"
-                                Foreground="#C42B2B"
-                                Style="{StaticResource CaptionTextStyle}"
-                                Visibility="Collapsed" />
-
-                            <TextBlock
-                                x:Name="InfoText"
-                                Foreground="#0078D4"
-                                Style="{StaticResource CaptionTextStyle}"
-                                Visibility="Collapsed" />
+                            <InfoBar
+                                x:Name="StatusInfoBar"
+                                IsClosable="True"
+                                IsOpen="False"
+                                CloseButtonClick="StatusInfoBar_CloseButtonClick">
+                                <InfoBar.ActionButton>
+                                    <Button
+                                        x:Name="StatusInfoBarActionButton"
+                                        Click="StatusInfoBarActionButton_Click"
+                                        Visibility="Collapsed" />
+                                </InfoBar.ActionButton>
+                            </InfoBar>
 
                             <Border
                                 x:Name="FileChip"
@@ -139,13 +140,14 @@
                                         Width="32"
                                         Height="32"
                                         Padding="0"
+                                        AutomationProperties.Name="Remove selected file"
                                         Background="Transparent"
                                         BorderThickness="0"
                                         Click="RemoveFileButton_Click"
                                         Content="&#xE711;"
                                         FontFamily="{ThemeResource SymbolThemeFontFamily}"
                                         Foreground="{StaticResource ResultLabelBrush}"
-                                        ToolTipService.ToolTip="Remove" />
+                                        ToolTipService.ToolTip="Remove selected file" />
                                 </Grid>
                             </Border>
                         </StackPanel>
@@ -165,27 +167,34 @@
                                         x:Name="Mp4FormatButton"
                                         Grid.Column="0"
                                         Checked="FormatRadioButton_Checked"
-                                        Content="MP4 (AV1)"
+                                        Content="MP4"
                                         GroupName="OutputFormat"
                                         Style="{StaticResource GlassFormatRadioButtonStyle}"
-                                        Tag="Mp4" />
+                                        Tag="Mp4"
+                                        ToolTipService.ToolTip="Best compatibility (AV1)" />
                                     <RadioButton
                                         x:Name="MkvFormatButton"
                                         Grid.Column="1"
                                         Checked="FormatRadioButton_Checked"
-                                        Content="MKV (AV1)"
+                                        Content="MKV"
                                         GroupName="OutputFormat"
                                         Style="{StaticResource GlassFormatRadioButtonStyle}"
-                                        Tag="Mkv" />
+                                        Tag="Mkv"
+                                        ToolTipService.ToolTip="Flexible container (AV1)" />
                                     <RadioButton
                                         x:Name="WebmFormatButton"
                                         Grid.Column="2"
                                         Checked="FormatRadioButton_Checked"
-                                        Content="WebM (AV1)"
+                                        Content="WebM"
                                         GroupName="OutputFormat"
                                         Style="{StaticResource GlassFormatRadioButtonStyle}"
-                                        Tag="WebM" />
+                                        Tag="WebM"
+                                        ToolTipService.ToolTip="Web-friendly container (AV1)" />
                                 </Grid>
+                                <TextBlock
+                                    Foreground="{StaticResource ResultLabelBrush}"
+                                    Style="{StaticResource CaptionTextStyle}"
+                                    Text="MP4 is best for sharing. All formats use AV1." />
                             </StackPanel>
 
                             <StackPanel Spacing="8">
@@ -195,27 +204,47 @@
                                     SelectedIndex="1"
                                     SelectionChanged="PresetComboBox_SelectionChanged"
                                     Style="{StaticResource GlassInputComboBoxStyle}">
-                                    <ComboBoxItem Content="Ultra" Tag="Ultra" />
-                                    <ComboBoxItem Content="8 MB Target (Recommended)" Tag="EightMB" />
-                                    <ComboBoxItem Content="Balanced" Tag="Balanced" />
+                                    <ComboBoxItem
+                                        Content="Ultra"
+                                        Tag="Ultra"
+                                        ToolTipService.ToolTip="Smallest file size with reduced video quality. Best for archiving or slow connections." />
+                                    <ComboBoxItem
+                                        Content="8 MB Target (Recommended)"
+                                        Tag="EightMB"
+                                        ToolTipService.ToolTip="Targets an 8 MB file while keeping audio and frame rate as high as possible. Great for Discord and chat sharing." />
+                                    <ComboBoxItem
+                                        Content="Balanced"
+                                        Tag="Balanced"
+                                        ToolTipService.ToolTip="Solid quality-to-size tradeoff for everyday sharing." />
                                 </ComboBox>
                             </StackPanel>
 
                             <Expander
+                                x:Name="AdvancedExpander"
                                 Header="Advanced Options"
                                 IsExpanded="False"
+                                Expanding="AdvancedExpander_Expanding"
+                                Collapsed="AdvancedExpander_Collapsed"
                                 Style="{StaticResource GlassExpanderStyle}">
                                 <StackPanel Spacing="12" Padding="0,12,0,0">
                                     <TextBox x:Name="ResolutionOverrideBox" Header="Resolution override" PlaceholderText="e.g. 1920x1080" />
                                     <TextBox x:Name="FrameRateOverrideBox" Header="Frame rate override" PlaceholderText="e.g. 30" />
                                     <TextBox x:Name="AudioBitrateOverrideBox" Header="Audio bitrate (kbps)" PlaceholderText="128" />
-                                    <ToggleSwitch x:Name="KeepAudioToggle" Header="Keep original audio track" />
+                                    <ToggleSwitch
+                                        x:Name="KeepAudioToggle"
+                                        Header="Keep original audio track"
+                                        Toggled="KeepAudioToggle_Toggled" />
                                     <TextBox x:Name="OutputPatternBox" Header="Output filename pattern" PlaceholderText="{}{name}_compressed" />
                                     <Button
                                         x:Name="ChooseOutputFolderButton"
                                         Click="ChooseOutputFolderButton_Click"
                                         Content="Choose output folder"
                                         Style="{StaticResource GlassSecondaryButtonStyle}" />
+                                    <TextBlock
+                                        x:Name="OutputFolderPathText"
+                                        Foreground="{StaticResource ResultLabelBrush}"
+                                        Style="{StaticResource CaptionTextStyle}"
+                                        TextWrapping="WrapWholeWords" />
                                 </StackPanel>
                             </Expander>
 
@@ -298,7 +327,7 @@
                 <Grid>
                     <ScrollViewer x:Name="EmptyCompletePanel" VerticalScrollBarVisibility="Auto">
                         <StackPanel Spacing="24">
-                            <TextBlock Style="{StaticResource SubtitleTextStyle}" Text="3. Compression Complete" />
+                            <TextBlock Style="{StaticResource SubtitleTextStyle}" Text="3. Results" />
 
                             <StackPanel HorizontalAlignment="Center" Spacing="16">
                                 <Grid Width="120" Height="120">
@@ -309,30 +338,6 @@
                                         FontSize="40"
                                         Foreground="{StaticResource PrimaryBlueBrush}"
                                         Glyph="&#xE714;" />
-                                    <FontIcon
-                                        Margin="8,18,0,0"
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Top"
-                                        FontSize="14"
-                                        Foreground="{StaticResource PrimaryBlueBrush}"
-                                        Glyph="&#xE734;"
-                                        Opacity="0.7" />
-                                    <FontIcon
-                                        Margin="0,8,12,0"
-                                        HorizontalAlignment="Right"
-                                        VerticalAlignment="Top"
-                                        FontSize="11"
-                                        Foreground="{StaticResource PrimaryBlueBrush}"
-                                        Glyph="&#xE734;"
-                                        Opacity="0.5" />
-                                    <FontIcon
-                                        Margin="0,0,8,16"
-                                        HorizontalAlignment="Right"
-                                        VerticalAlignment="Bottom"
-                                        FontSize="13"
-                                        Foreground="{StaticResource PrimaryBlueBrush}"
-                                        Glyph="&#xE734;"
-                                        Opacity="0.6" />
                                 </Grid>
 
                                 <StackPanel HorizontalAlignment="Center" Spacing="8" MaxWidth="360">
@@ -351,127 +356,6 @@
                                         TextWrapping="WrapWholeWords" />
                                 </StackPanel>
                             </StackPanel>
-
-                            <Grid ColumnSpacing="12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-
-                                <StackPanel Grid.Column="0" HorizontalAlignment="Center" Spacing="8" MaxWidth="120">
-                                    <Border
-                                        Width="40"
-                                        Height="40"
-                                        HorizontalAlignment="Center"
-                                        Background="{StaticResource FeatureGreenBackgroundBrush}"
-                                        CornerRadius="10">
-                                        <FontIcon
-                                            HorizontalAlignment="Center"
-                                            VerticalAlignment="Center"
-                                            FontSize="18"
-                                            Foreground="{StaticResource SuccessGreenBrush}"
-                                            Glyph="&#xE7C5;" />
-                                    </Border>
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        FontWeight="{StaticResource FontWeightSemiBold}"
-                                        Style="{StaticResource BodyTextStyle}"
-                                        Text="High Quality"
-                                        TextAlignment="Center" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        Foreground="{StaticResource ResultLabelBrush}"
-                                        Style="{StaticResource CaptionTextStyle}"
-                                        Text="AV1 encoding"
-                                        TextAlignment="Center" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="1" HorizontalAlignment="Center" Spacing="8" MaxWidth="120">
-                                    <Border
-                                        Width="40"
-                                        Height="40"
-                                        HorizontalAlignment="Center"
-                                        Background="{StaticResource FeaturePurpleBackgroundBrush}"
-                                        CornerRadius="10">
-                                        <FontIcon
-                                            HorizontalAlignment="Center"
-                                            VerticalAlignment="Center"
-                                            FontSize="18"
-                                            Foreground="{StaticResource FeaturePurpleBrush}"
-                                            Glyph="&#xE7BF;" />
-                                    </Border>
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        FontWeight="{StaticResource FontWeightSemiBold}"
-                                        Style="{StaticResource BodyTextStyle}"
-                                        Text="Smaller Size"
-                                        TextAlignment="Center" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        Foreground="{StaticResource ResultLabelBrush}"
-                                        Style="{StaticResource CaptionTextStyle}"
-                                        Text="Save disk space"
-                                        TextAlignment="Center" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="2" HorizontalAlignment="Center" Spacing="8" MaxWidth="120">
-                                    <Border
-                                        Width="40"
-                                        Height="40"
-                                        HorizontalAlignment="Center"
-                                        Background="{StaticResource FeatureBlueBackgroundBrush}"
-                                        CornerRadius="10">
-                                        <FontIcon
-                                            HorizontalAlignment="Center"
-                                            VerticalAlignment="Center"
-                                            FontSize="18"
-                                            Foreground="{StaticResource PrimaryBlueBrush}"
-                                            Glyph="&#xE896;" />
-                                    </Border>
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        FontWeight="{StaticResource FontWeightSemiBold}"
-                                        Style="{StaticResource BodyTextStyle}"
-                                        Text="Fast &amp; Efficient"
-                                        TextAlignment="Center" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        Foreground="{StaticResource ResultLabelBrush}"
-                                        Style="{StaticResource CaptionTextStyle}"
-                                        Text="Optimized speed"
-                                        TextAlignment="Center" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="3" HorizontalAlignment="Center" Spacing="8" MaxWidth="120">
-                                    <Border
-                                        Width="40"
-                                        Height="40"
-                                        HorizontalAlignment="Center"
-                                        Background="{StaticResource FeatureOrangeBackgroundBrush}"
-                                        CornerRadius="10">
-                                        <FontIcon
-                                            HorizontalAlignment="Center"
-                                            VerticalAlignment="Center"
-                                            FontSize="18"
-                                            Foreground="{StaticResource FeatureOrangeBrush}"
-                                            Glyph="&#xE8A5;" />
-                                    </Border>
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        FontWeight="{StaticResource FontWeightSemiBold}"
-                                        Style="{StaticResource BodyTextStyle}"
-                                        Text="Compare Results"
-                                        TextAlignment="Center" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        Foreground="{StaticResource ResultLabelBrush}"
-                                        Style="{StaticResource CaptionTextStyle}"
-                                        Text="Before &amp; after"
-                                        TextAlignment="Center" />
-                                </StackPanel>
-                            </Grid>
 
                             <Border
                                 Padding="16,14"
@@ -514,7 +398,8 @@
                         </StackPanel>
                     </ScrollViewer>
 
-                    <ScrollViewer x:Name="ResultPanel" Visibility="Collapsed">
+                    <!-- Deferred: large completion UI is unused until the first successful encode. -->
+                    <ScrollViewer x:Name="ResultPanel" x:Load="False" Visibility="Collapsed">
                         <StackPanel Spacing="16">
                             <Grid>
                                 <TextBlock Style="{StaticResource SubtitleTextStyle}" Text="3. Compression Complete" />
@@ -535,14 +420,10 @@
                             </Grid>
 
                             <Border
+                                x:Name="PreviewHost"
                                 Background="#12000000"
                                 CornerRadius="12"
-                                MinHeight="220">
-                                <MediaPlayerElement
-                                    x:Name="PreviewPlayer"
-                                    AreTransportControlsEnabled="True"
-                                    AutoPlay="False" />
-                            </Border>
+                                MinHeight="220" />
 
                             <Border
                                 Background="{StaticResource ResultSurfaceBrush}"

@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 using Compressi.Core.Models;
@@ -7,6 +8,7 @@ namespace Compressi.Core.Services;
 public sealed class MediaProbeService : IMediaProbeService
 {
     private readonly string _ffprobePath;
+    private readonly ConcurrentDictionary<string, ProbeCacheEntry> _cache = new(StringComparer.OrdinalIgnoreCase);
 
     public MediaProbeService()
         : this(FfmpegToolPaths.GetFfprobePath())
@@ -28,7 +30,7 @@ public sealed class MediaProbeService : IMediaProbeService
         if (!File.Exists(_ffprobePath))
         {
             throw new FileNotFoundException(
-                "ffprobe was not found. Ensure ffmpeg binaries are placed in Assets/ffmpeg.",
+                "Compressi couldn't find its video engine. Reinstall the app to restore it.",
                 _ffprobePath);
         }
 
@@ -37,8 +39,17 @@ public sealed class MediaProbeService : IMediaProbeService
             throw new InvalidOperationException("The selected file is not a supported video format.");
         }
 
+        var info = new FileInfo(filePath);
+        var stamp = new ProbeStamp(info.Length, info.LastWriteTimeUtc.Ticks);
+        if (_cache.TryGetValue(filePath, out var cached) && cached.Stamp == stamp)
+        {
+            return cached.Video;
+        }
+
         var output = await RunProcessAsync(_ffprobePath, filePath, cancellationToken).ConfigureAwait(false);
-        return FfprobeJsonParser.Parse(filePath, output);
+        var video = FfprobeJsonParser.Parse(filePath, output);
+        _cache[filePath] = new ProbeCacheEntry(stamp, video);
+        return video;
     }
 
     private static async Task<string> RunProcessAsync(
@@ -77,12 +88,14 @@ public sealed class MediaProbeService : IMediaProbeService
 
         if (process.ExitCode != 0)
         {
-            var error = await errorTask.ConfigureAwait(false);
-            throw new InvalidOperationException(string.IsNullOrWhiteSpace(error)
-                ? "ffprobe failed to analyze the selected file."
-                : error.Trim());
+            throw new InvalidOperationException(
+                "Couldn't analyze this video. Try another file or a different format.");
         }
 
         return await outputTask.ConfigureAwait(false);
     }
+
+    private readonly record struct ProbeStamp(long Length, long LastWriteTicks);
+
+    private sealed record ProbeCacheEntry(ProbeStamp Stamp, VideoFile Video);
 }

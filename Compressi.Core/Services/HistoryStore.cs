@@ -6,6 +6,8 @@ namespace Compressi.Core.Services;
 public sealed class HistoryStore
 {
     private readonly string _connectionString;
+    private readonly object _schemaGate = new();
+    private bool _schemaReady;
 
     public HistoryStore(string? databasePath = null)
     {
@@ -15,7 +17,6 @@ public sealed class HistoryStore
             "history.db");
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         _connectionString = $"Data Source={path}";
-        EnsureSchema();
     }
 
     public IReadOnlyList<HistoryEntry> GetAll()
@@ -102,32 +103,46 @@ public sealed class HistoryStore
         command.ExecuteNonQuery();
     }
 
-    private void EnsureSchema()
+    private void EnsureSchema(SqliteConnection connection)
     {
-        using var connection = OpenConnection();
-        using var command = connection.CreateCommand();
-        command.CommandText = """
-            CREATE TABLE IF NOT EXISTS history (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                source_name TEXT NOT NULL,
-                source_path TEXT NOT NULL,
-                output_path TEXT,
-                preset TEXT NOT NULL,
-                format TEXT NOT NULL,
-                status TEXT NOT NULL,
-                original_size INTEGER NOT NULL,
-                compressed_size INTEGER NOT NULL,
-                ratio REAL NOT NULL,
-                created_at TEXT NOT NULL
-            );
-            """;
-        command.ExecuteNonQuery();
+        if (_schemaReady)
+        {
+            return;
+        }
+
+        lock (_schemaGate)
+        {
+            if (_schemaReady)
+            {
+                return;
+            }
+
+            using var command = connection.CreateCommand();
+            command.CommandText = """
+                CREATE TABLE IF NOT EXISTS history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    source_name TEXT NOT NULL,
+                    source_path TEXT NOT NULL,
+                    output_path TEXT,
+                    preset TEXT NOT NULL,
+                    format TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    original_size INTEGER NOT NULL,
+                    compressed_size INTEGER NOT NULL,
+                    ratio REAL NOT NULL,
+                    created_at TEXT NOT NULL
+                );
+                """;
+            command.ExecuteNonQuery();
+            _schemaReady = true;
+        }
     }
 
     private SqliteConnection OpenConnection()
     {
         var connection = new SqliteConnection(_connectionString);
         connection.Open();
+        EnsureSchema(connection);
         return connection;
     }
 

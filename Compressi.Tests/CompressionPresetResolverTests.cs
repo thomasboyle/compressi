@@ -105,7 +105,11 @@ public class CompressionPresetResolverTests
         Assert.Contains("-f", passOne);
         Assert.Contains("mp4", passOne);
         Assert.Contains("NUL", passOne);
-        Assert.Contains("-maxrate", passOne);
+        Assert.Contains("-b:v", passOne);
+        Assert.Contains("libsvtav1", passOne);
+        // Equal -b:v/-maxrate forces CBR on libsvtav1; SVT rejects that for RA.
+        Assert.DoesNotContain("-maxrate", passOne);
+        Assert.Contains(passOne, arg => arg.Contains("rc=1", StringComparison.Ordinal));
         Assert.DoesNotContain("-f mp4 NUL", passOne);
         Assert.True(plan.AudioBitrateKbps > 0);
         Assert.True(plan.OutputFrameRate > 0);
@@ -128,7 +132,9 @@ public class CompressionPresetResolverTests
 
         Assert.Contains("-b:v", corrective.Arguments);
         Assert.Contains("400k", corrective.Arguments);
-        Assert.Contains("-maxrate", corrective.Arguments);
+        Assert.Contains("libsvtav1", corrective.Arguments);
+        Assert.DoesNotContain("-maxrate", corrective.Arguments);
+        Assert.Contains(corrective.Arguments, arg => arg.Contains("rc=1", StringComparison.Ordinal));
         Assert.DoesNotContain("-pass", corrective.Arguments);
         Assert.Null(corrective.PassLogFilePrefix);
         Assert.Contains(plan.OutputPath, corrective.Arguments);

@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using Compressi.Core.Models;
 using Compressi.Core.Services;
+using Compressi_App.Services;
+using Compressi_App.Services.UiSounds;
 using Compressi_App.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -14,7 +16,7 @@ using WinRT.Interop;
 
 namespace Compressi_App.Views;
 
-public sealed partial class CompressPage : Page
+public sealed partial class CompressPage : Page, IAppPage
 {
     private static readonly SolidColorBrush DropZoneDefaultFill = new(Color.FromArgb(0x0A, 0x00, 0x78, 0xD4));
     private static readonly SolidColorBrush DropZoneHoverFill = new(Color.FromArgb(0x18, 0x00, 0x78, 0xD4));
@@ -23,6 +25,15 @@ public sealed partial class CompressPage : Page
 
     private bool _suppressFormatToggle;
     private bool _suppressPresetSync;
+    private bool _suppressKeepAudioSound;
+    private bool _uiStateUpdateQueued;
+    private bool _isActive;
+    private bool _uiDirty;
+    private string? _loadedPreviewPath;
+    private string? _lastHeardError;
+    private string? _lastHeardSourcePath;
+    private string? _lastHeardResultPath;
+    private MediaPlayerElement? _previewPlayer;
 
     public CompressViewModel ViewModel => App.CompressViewModel;
 
@@ -35,8 +46,34 @@ public sealed partial class CompressPage : Page
         UpdateUiState();
     }
 
+    public void Activate()
+    {
+        _isActive = true;
+        if (!_uiDirty)
+        {
+            return;
+        }
+
+        _uiDirty = false;
+        SyncPresetFromViewModel();
+        UpdateUiState();
+    }
+
+    public void Deactivate()
+    {
+        _isActive = false;
+    }
+
     private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
+        PlayOutcomeSound(e.PropertyName);
+
+        if (!_isActive)
+        {
+            _uiDirty = true;
+            return;
+        }
+
         // Progress ticks are frequent during CPU multi-pass encodes; only refresh progress controls.
         switch (e.PropertyName)
         {
@@ -48,9 +85,75 @@ public sealed partial class CompressPage : Page
                 UpdateProgressUi();
                 return;
             default:
-                UpdateUiState();
+                QueueUiStateUpdate();
                 return;
         }
+    }
+
+    private void PlayOutcomeSound(string? propertyName)
+    {
+        switch (propertyName)
+        {
+            case nameof(CompressViewModel.Result):
+                if (ViewModel.Result is { } result
+                    && !string.Equals(_lastHeardResultPath, result.OutputPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    _lastHeardResultPath = result.OutputPath;
+                    UiSoundService.Play(UiSoundName.Success);
+                }
+                else if (ViewModel.Result is null)
+                {
+                    _lastHeardResultPath = null;
+                }
+
+                break;
+
+            case nameof(CompressViewModel.ErrorMessage):
+                if (ViewModel.HasError
+                    && !string.Equals(_lastHeardError, ViewModel.ErrorMessage, StringComparison.Ordinal))
+                {
+                    _lastHeardError = ViewModel.ErrorMessage;
+                    UiSoundService.Play(UiSoundName.Error);
+                }
+                else if (!ViewModel.HasError)
+                {
+                    _lastHeardError = null;
+                }
+
+                break;
+
+            case nameof(CompressViewModel.SourceFile):
+                if (ViewModel.HasSourceFile
+                    && !string.Equals(_lastHeardSourcePath, ViewModel.SourceFile?.FilePath, StringComparison.OrdinalIgnoreCase))
+                {
+                    _lastHeardSourcePath = ViewModel.SourceFile?.FilePath;
+                    UiSoundService.Play(UiSoundName.Ready);
+                }
+                else if (!ViewModel.HasSourceFile)
+                {
+                    _lastHeardSourcePath = null;
+                }
+
+                break;
+        }
+    }
+
+    private void QueueUiStateUpdate()
+    {
+        if (!_isActive || _uiStateUpdateQueued)
+        {
+            return;
+        }
+
+        _uiStateUpdateQueued = true;
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            _uiStateUpdateQueued = false;
+            if (_isActive)
+            {
+                UpdateUiState();
+            }
+        });
     }
 
     private void UpdateProgressUi()
@@ -62,14 +165,6 @@ public sealed partial class CompressPage : Page
         SpeedText.Text = string.IsNullOrWhiteSpace(ViewModel.SpeedDisplay)
             ? string.Empty
             : $"Speed: {ViewModel.SpeedDisplay}";
-    }
-
-    protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
-    {
-        base.OnNavigatedTo(e);
-        ViewModel.ReloadSettings();
-        SyncPresetFromViewModel();
-        UpdateUiState();
     }
 
     private void SyncPresetFromViewModel()
@@ -87,7 +182,9 @@ public sealed partial class CompressPage : Page
         ResolutionOverrideBox.Text = ViewModel.ResolutionOverride ?? string.Empty;
         FrameRateOverrideBox.Text = ViewModel.FrameRateOverride ?? string.Empty;
         AudioBitrateOverrideBox.Text = ViewModel.AudioBitrateOverride ?? string.Empty;
+        _suppressKeepAudioSound = true;
         KeepAudioToggle.IsOn = ViewModel.KeepOriginalAudio;
+        _suppressKeepAudioSound = false;
         OutputPatternBox.Text = ViewModel.OutputFilenamePattern ?? string.Empty;
     }
 
@@ -131,25 +228,8 @@ public sealed partial class CompressPage : Page
 
         SyncFormatFromViewModel();
 
-        if (ViewModel.HasError)
-        {
-            ErrorText.Text = ViewModel.ErrorMessage;
-            ErrorText.Visibility = Visibility.Visible;
-        }
-        else
-        {
-            ErrorText.Visibility = Visibility.Collapsed;
-        }
-
-        if (ViewModel.HasInfo)
-        {
-            InfoText.Text = ViewModel.InfoMessage;
-            InfoText.Visibility = Visibility.Visible;
-        }
-        else
-        {
-            InfoText.Visibility = Visibility.Collapsed;
-        }
+        UpdateStatusInfoBar();
+        OutputFolderPathText.Text = $"Saving to: {ViewModel.OutputDirectoryDisplay}";
 
         if (ViewModel.HasSourceFile)
         {
@@ -163,13 +243,61 @@ public sealed partial class CompressPage : Page
         }
 
         EmptyCompletePanel.Visibility = ViewModel.ShowEmptyCompleteState ? Visibility.Visible : Visibility.Collapsed;
-        ResultPanel.Visibility = ViewModel.HasResult ? Visibility.Visible : Visibility.Collapsed;
+
+        if (ViewModel.HasResult)
+        {
+            var resultPanel = EnsureResultPanel();
+            resultPanel.Visibility = Visibility.Visible;
+        }
+        else if (ResultPanel is not null)
+        {
+            ResultPanel.Visibility = Visibility.Collapsed;
+        }
 
         if (ViewModel.Result is { } result)
         {
-            _ = LoadPreviewAsync(result.OutputPath);
             BindResultPanel(result);
+            if (!string.Equals(_loadedPreviewPath, result.OutputPath, StringComparison.OrdinalIgnoreCase))
+            {
+                _loadedPreviewPath = result.OutputPath;
+                _ = LoadPreviewAsync(result.OutputPath);
+            }
         }
+        else if (_loadedPreviewPath is not null)
+        {
+            _loadedPreviewPath = null;
+            if (_previewPlayer is not null)
+            {
+                _previewPlayer.Source = null;
+            }
+        }
+    }
+
+    private ScrollViewer EnsureResultPanel()
+    {
+        if (ResultPanel is not null)
+        {
+            return ResultPanel;
+        }
+
+        // Realizes the x:Load="False" ResultPanel subtree on first use.
+        return (ScrollViewer)FindName(nameof(ResultPanel))!;
+    }
+
+    private MediaPlayerElement EnsurePreviewPlayer()
+    {
+        if (_previewPlayer is not null)
+        {
+            return _previewPlayer;
+        }
+
+        _previewPlayer = new MediaPlayerElement
+        {
+            AreTransportControlsEnabled = true,
+            AutoPlay = false,
+        };
+        PreviewHost.Child = _previewPlayer;
+        return _previewPlayer;
     }
 
     private async Task LoadPreviewAsync(string path)
@@ -177,11 +305,19 @@ public sealed partial class CompressPage : Page
         try
         {
             var file = await StorageFile.GetFileFromPathAsync(path);
-            PreviewPlayer.Source = Windows.Media.Core.MediaSource.CreateFromStorageFile(file);
+            if (!_isActive || !string.Equals(_loadedPreviewPath, path, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            EnsurePreviewPlayer().Source = Windows.Media.Core.MediaSource.CreateFromStorageFile(file);
         }
         catch
         {
-            PreviewPlayer.Source = null;
+            if (_isActive && string.Equals(_loadedPreviewPath, path, StringComparison.OrdinalIgnoreCase) && _previewPlayer is not null)
+            {
+                _previewPlayer.Source = null;
+            }
         }
     }
 
@@ -207,17 +343,98 @@ public sealed partial class CompressPage : Page
     private async void StartCompressionButton_Click(object sender, RoutedEventArgs e)
     {
         SyncAdvancedFieldsToViewModel();
+
+        if (ViewModel.ValidateAdvancedOverrides() is not null)
+        {
+            await ViewModel.StartCompressionAsync();
+            return;
+        }
+
+        var outputPath = ViewModel.GetPlannedOutputPath();
+        if (outputPath is not null && File.Exists(outputPath))
+        {
+            var overwrite = new ContentDialog
+            {
+                Title = "Replace existing file?",
+                Content = $"A file already exists at:\n{outputPath}\n\nReplace it?",
+                PrimaryButtonText = "Replace",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = XamlRoot,
+            };
+
+            if (await overwrite.ShowAsync() != ContentDialogResult.Primary)
+            {
+                return;
+            }
+        }
+
+        UiSoundService.Play(UiSoundName.Loading);
         await ViewModel.StartCompressionAsync();
+    }
+
+    private void UpdateStatusInfoBar()
+    {
+        if (ViewModel.HasError)
+        {
+            StatusInfoBar.Severity = InfoBarSeverity.Error;
+            StatusInfoBar.Title = "Something went wrong";
+            StatusInfoBar.Message = ViewModel.ErrorMessage ?? string.Empty;
+            StatusInfoBar.IsOpen = true;
+            StatusInfoBarActionButton.Content = ViewModel.ErrorActionLabel ?? string.Empty;
+            StatusInfoBarActionButton.Visibility = ViewModel.HasErrorAction
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            return;
+        }
+
+        if (ViewModel.HasInfo)
+        {
+            StatusInfoBar.Severity = InfoBarSeverity.Informational;
+            StatusInfoBar.Title = string.Empty;
+            StatusInfoBar.Message = ViewModel.InfoMessage ?? string.Empty;
+            StatusInfoBar.IsOpen = true;
+            StatusInfoBarActionButton.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        StatusInfoBar.IsOpen = false;
+        StatusInfoBarActionButton.Visibility = Visibility.Collapsed;
+    }
+
+    private void StatusInfoBar_CloseButtonClick(InfoBar sender, object args)
+    {
+        ViewModel.ClearStatusMessages();
+    }
+
+    private async void StatusInfoBarActionButton_Click(object sender, RoutedEventArgs e)
+    {
+        var action = ViewModel.ErrorActionLabel;
+        ViewModel.ClearStatusMessages();
+
+        if (string.Equals(action, UserFacingErrors.ActionBrowse, StringComparison.Ordinal))
+        {
+            await PickSourceFileAsync();
+            return;
+        }
+
+        if (string.Equals(action, UserFacingErrors.ActionRetry, StringComparison.Ordinal)
+            && ViewModel.CanStartCompression)
+        {
+            UiSoundService.Play(UiSoundName.Loading);
+            await ViewModel.StartCompressionAsync();
+        }
     }
 
     private void CancelCompressionButton_Click(object sender, RoutedEventArgs e)
     {
+        UiSoundService.Play(UiSoundName.Droplet);
         ViewModel.CancelCompression();
     }
 
     private void CompressAnotherButton_Click(object sender, RoutedEventArgs e)
     {
-        PreviewPlayer.Source = null;
+        UiSoundService.Play(UiSoundName.Droplet);
         ViewModel.CompressAnother();
         SyncPresetFromViewModel();
         SyncAdvancedFieldsFromViewModel();
@@ -231,6 +448,7 @@ public sealed partial class CompressPage : Page
             return;
         }
 
+        UiSoundService.Play(UiSoundName.Release);
         Process.Start(new ProcessStartInfo
         {
             FileName = ViewModel.Result.OutputPath,
@@ -245,6 +463,7 @@ public sealed partial class CompressPage : Page
             return;
         }
 
+        UiSoundService.Play(UiSoundName.Release);
         Process.Start(new ProcessStartInfo
         {
             FileName = "explorer.exe",
@@ -255,6 +474,7 @@ public sealed partial class CompressPage : Page
 
     private async void ChooseOutputFolderButton_Click(object sender, RoutedEventArgs e)
     {
+        UiSoundService.Play(UiSoundName.Release);
         var picker = new FolderPicker();
         InitializePicker(picker);
         picker.FileTypeFilter.Add("*");
@@ -281,6 +501,7 @@ public sealed partial class CompressPage : Page
             return;
         }
 
+        UiSoundService.Play(UiSoundName.Press);
         ViewModel.OutputFormat = checkedButton.Tag?.ToString() switch
         {
             "Mp4" => OutputFormat.Mp4,
@@ -297,6 +518,7 @@ public sealed partial class CompressPage : Page
             return;
         }
 
+        UiSoundService.Play(UiSoundName.Press);
         ViewModel.Preset = tag switch
         {
             "Ultra" => CompressionPreset.Ultra,
@@ -304,6 +526,22 @@ public sealed partial class CompressPage : Page
             "Balanced" => CompressionPreset.Balanced,
             _ => throw new ArgumentOutOfRangeException(nameof(tag), tag, "Unknown compression preset."),
         };
+    }
+
+    private void AdvancedExpander_Expanding(Expander sender, ExpanderExpandingEventArgs args) =>
+        UiSoundService.Play(UiSoundName.Bloom);
+
+    private void AdvancedExpander_Collapsed(Expander sender, ExpanderCollapsedEventArgs args) =>
+        UiSoundService.Play(UiSoundName.Droplet);
+
+    private void KeepAudioToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (_suppressKeepAudioSound)
+        {
+            return;
+        }
+
+        UiSoundService.Play(UiSoundName.Toggle);
     }
 
     private void DropZone_DragOver(object sender, DragEventArgs e)
@@ -360,6 +598,7 @@ public sealed partial class CompressPage : Page
 
     private async void BrowseFilesButton_Click(object sender, RoutedEventArgs e)
     {
+        UiSoundService.Play(UiSoundName.Press);
         await PickSourceFileAsync();
     }
 
@@ -389,6 +628,7 @@ public sealed partial class CompressPage : Page
 
     private void RemoveFileButton_Click(object sender, RoutedEventArgs e)
     {
+        UiSoundService.Play(UiSoundName.Droplet);
         ViewModel.ClearSourceFile();
     }
 

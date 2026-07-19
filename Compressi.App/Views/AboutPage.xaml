@@ -1,28 +1,110 @@
 <?xml version="1.0" encoding="utf-8" ?>
+
 <Page
+
     x:Class="Compressi_App.Views.AboutPage"
+
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+
     xmlns:controls="using:Compressi_App.Controls"
+
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+
     mc:Ignorable="d">
 
+
+
     <Grid Padding="24">
+
         <controls:GlassPanel>
+
             <controls:GlassPanel.PanelContent>
-                <StackPanel Spacing="12" MaxWidth="640">
-                    <TextBlock Style="{StaticResource TitleTextStyle}" Text="About Compressi" />
-                    <TextBlock x:Name="VersionText" Style="{StaticResource BodyTextStyle}" Text="Version 1.0.0" />
-                    <TextBlock x:Name="FfmpegText" Opacity="0.8" Style="{StaticResource BodyTextStyle}" TextWrapping="WrapWholeWords" />
-                    <TextBlock
-                        Opacity="0.7"
-                        Style="{StaticResource CaptionTextStyle}"
-                        Text="FFmpeg is licensed under LGPL/GPL depending on build configuration. Source code and license texts are available from the FFmpeg project."
-                        TextWrapping="WrapWholeWords" />
-                    <HyperlinkButton Content="FFmpeg project" NavigateUri="https://ffmpeg.org/" />
-                </StackPanel>
+
+                <ScrollViewer>
+
+                    <StackPanel Spacing="12" MaxWidth="640">
+
+                        <TextBlock Style="{StaticResource TitleTextStyle}" Text="About Compressi" />
+
+                        <TextBlock x:Name="VersionText" Style="{StaticResource BodyTextStyle}" Text="Version 1.0.9" />
+
+
+
+                        <TextBlock
+
+                            Margin="0,8,0,0"
+
+                            Style="{StaticResource SubtitleTextStyle}"
+
+                            Text="How to compress a video" />
+
+                        <TextBlock Style="{StaticResource BodyTextStyle}" TextWrapping="WrapWholeWords">
+
+                            1. On Compress, drop a video or choose Browse Files.&#x0a;2. Pick a format and preset (8 MB Target is great for chat apps).&#x0a;3. Click Start Compression, then open the result when it finishes.
+
+                        </TextBlock>
+
+                        <TextBlock
+
+                            Opacity="0.7"
+
+                            Style="{StaticResource CaptionTextStyle}"
+
+                            Text="Supported inputs include common video files such as MP4, MKV, MOV, AVI, and WebM."
+
+                            TextWrapping="WrapWholeWords" />
+
+
+
+                        <TextBlock
+
+                            Margin="0,12,0,0"
+
+                            Style="{StaticResource SubtitleTextStyle}"
+
+                            Text="FFmpeg" />
+
+                        <TextBlock x:Name="FfmpegText" Opacity="0.8" Style="{StaticResource BodyTextStyle}" TextWrapping="WrapWholeWords" />
+
+                        <TextBlock
+
+                            Opacity="0.7"
+
+                            Style="{StaticResource CaptionTextStyle}"
+
+                            Text="FFmpeg is licensed under LGPL/GPL depending on build configuration. Source code and license texts are available from the FFmpeg project."
+
+                            TextWrapping="WrapWholeWords" />
+
+                        <HyperlinkButton Content="FFmpeg project" NavigateUri="https://ffmpeg.org/" />
+
+                        <TextBlock
+
+                            Margin="0,12,0,0"
+
+                            Opacity="0.7"
+
+                            Style="{StaticResource CaptionTextStyle}"
+
+                            Text="UI interaction sounds are adapted from Cuelume by Daniel Belyi (MIT License)."
+
+                            TextWrapping="WrapWholeWords" />
+
+                        <HyperlinkButton Content="Cuelume on GitHub" NavigateUri="https://github.com/Danilaa1/cuelume" />
+
+                    </StackPanel>
+
+                </ScrollViewer>
+
             </controls:GlassPanel.PanelContent>
+
         </controls:GlassPanel>
+
     </Grid>
+
 </Page>
+

@@ -776,59 +776,40 @@ public static class CompressionPresetResolver
 
 
 
-    private static string BuildOutputPath(CompressionJob job)
-
+    public static string ResolveOutputPath(CompressionJob job, bool ensureDirectoryExists = false)
     {
-
         var extension = job.Format switch
-
         {
-
             OutputFormat.Mp4 => ".mp4",
-
             OutputFormat.Mkv => ".mkv",
-
             OutputFormat.WebM => ".webm",
-
             _ => throw new ArgumentOutOfRangeException(nameof(job), job.Format, "Unknown output format."),
-
         };
 
-
-
         var sourceName = Path.GetFileNameWithoutExtension(job.Source.FilePath);
-
         var pattern = job.Advanced?.OutputFilenamePattern;
-
         var outputName = string.IsNullOrWhiteSpace(pattern)
-
             ? $"{sourceName}_compressed"
-
             : pattern
-
                 .Replace("{name}", sourceName, StringComparison.OrdinalIgnoreCase)
-
                 .Replace("{ext}", extension.TrimStart('.'), StringComparison.OrdinalIgnoreCase);
 
-
-
         var outputDirectory = job.Advanced?.OutputDirectory;
-
         if (string.IsNullOrWhiteSpace(outputDirectory))
-
         {
-
             outputDirectory = Path.GetDirectoryName(job.Source.FilePath) ?? Environment.CurrentDirectory;
-
         }
 
-
-
-        Directory.CreateDirectory(outputDirectory);
+        if (ensureDirectoryExists)
+        {
+            Directory.CreateDirectory(outputDirectory);
+        }
 
         return Path.Combine(outputDirectory, outputName + extension);
-
     }
+
+    private static string BuildOutputPath(CompressionJob job) =>
+        ResolveOutputPath(job, ensureDirectoryExists: true);
 
 }
 

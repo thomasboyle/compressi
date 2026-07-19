@@ -1,22 +1,52 @@
 using System.Diagnostics;
 using Compressi.Core.Services;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
 
 namespace Compressi_App.Views;
 
-public sealed partial class AboutPage : Page
+public sealed partial class AboutPage : Page, IAppPage
 {
+    private static string? _cachedFfmpegBlurb;
+    private bool _isActive;
+    private bool _versionBound;
+
     public AboutPage()
     {
         InitializeComponent();
     }
 
-    protected override void OnNavigatedTo(NavigationEventArgs e)
+    public void Activate()
     {
-        base.OnNavigatedTo(e);
-        VersionText.Text = "Version 1.0.0";
-        FfmpegText.Text = QueryFfmpegVersion();
+        _isActive = true;
+        if (!_versionBound)
+        {
+            _versionBound = true;
+            VersionText.Text = "Version 1.0.9";
+        }
+
+        if (_cachedFfmpegBlurb is not null)
+        {
+            FfmpegText.Text = _cachedFfmpegBlurb;
+            return;
+        }
+
+        FfmpegText.Text = "Detecting FFmpeg...";
+        _ = LoadFfmpegBlurbAsync();
+    }
+
+    public void Deactivate()
+    {
+        _isActive = false;
+    }
+
+    private async Task LoadFfmpegBlurbAsync()
+    {
+        var blurb = await Task.Run(QueryFfmpegVersion).ConfigureAwait(true);
+        _cachedFfmpegBlurb = blurb;
+        if (_isActive)
+        {
+            FfmpegText.Text = blurb;
+        }
     }
 
     private static string QueryFfmpegVersion()

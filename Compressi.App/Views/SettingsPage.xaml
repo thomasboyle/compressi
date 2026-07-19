@@ -15,18 +15,40 @@
                     <StackPanel Spacing="20" MaxWidth="640">
                         <TextBlock Style="{StaticResource TitleTextStyle}" Text="Settings" />
 
+                        <InfoBar
+                            x:Name="SettingsInfoBar"
+                            IsClosable="True"
+                            IsOpen="False" />
+
                         <TextBox
                             x:Name="OutputFolderBox"
                             Header="Default output folder"
-                            PlaceholderText="Leave empty to use source file folder" />
+                            PlaceholderText="Leave empty to use source file folder"
+                            TextChanged="OutputFolderBox_TextChanged" />
 
-                        <ComboBox x:Name="DefaultPresetBox" Header="Default Compression Mode" HorizontalAlignment="Stretch">
-                            <ComboBoxItem Content="Ultra" Tag="Ultra" />
-                            <ComboBoxItem Content="8MB" Tag="EightMB" />
-                            <ComboBoxItem Content="Balanced" Tag="Balanced" />
+                        <ComboBox
+                            x:Name="DefaultPresetBox"
+                            Header="Default preset"
+                            HorizontalAlignment="Stretch"
+                            SelectionChanged="DefaultPresetBox_SelectionChanged">
+                            <ComboBoxItem
+                                Content="Ultra"
+                                Tag="Ultra"
+                                ToolTipService.ToolTip="Smallest file size with reduced video quality. Best for archiving or slow connections." />
+                            <ComboBoxItem
+                                Content="8 MB Target (Recommended)"
+                                Tag="EightMB"
+                                ToolTipService.ToolTip="Targets an 8 MB file while keeping audio and frame rate as high as possible. Great for Discord and chat sharing." />
+                            <ComboBoxItem
+                                Content="Balanced"
+                                Tag="Balanced"
+                                ToolTipService.ToolTip="Solid quality-to-size tradeoff for everyday sharing." />
                         </ComboBox>
 
-                        <ToggleSwitch x:Name="HardwareToggle" Header="Hardware acceleration (GPU AV1 when available)" />
+                        <ToggleSwitch
+                            x:Name="HardwareToggle"
+                            Header="Hardware acceleration (GPU AV1 when available)"
+                            Toggled="HardwareToggle_Toggled" />
 
                         <StackPanel Spacing="8">
                             <TextBlock Style="{StaticResource BodyTextStyle}" Text="CPU thread usage" />
@@ -39,13 +61,45 @@
                             <TextBlock x:Name="ThreadCountLabel" Style="{StaticResource CaptionTextStyle}" />
                         </StackPanel>
 
-                        <ComboBox x:Name="ThemeBox" Header="Theme" HorizontalAlignment="Stretch">
+                        <ComboBox
+                            x:Name="ThemeBox"
+                            Header="Theme"
+                            HorizontalAlignment="Stretch"
+                            SelectionChanged="ThemeBox_SelectionChanged">
                             <ComboBoxItem Content="System" Tag="System" />
                             <ComboBoxItem Content="Light" Tag="Light" />
                             <ComboBoxItem Content="Dark" Tag="Dark" />
                         </ComboBox>
 
-                        <ToggleSwitch x:Name="NotifyToggle" Header="Notification on completion" />
+                        <StackPanel Spacing="4">
+                            <ToggleSwitch
+                                x:Name="NotifyToggle"
+                                Header="Notification on completion"
+                                Toggled="NotifyToggle_Toggled" />
+                            <TextBlock
+                                x:Name="NotifyUnavailableText"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextStyle}"
+                                Text="Desktop notifications are unavailable in this install."
+                                TextWrapping="WrapWholeWords"
+                                Visibility="Collapsed" />
+                        </StackPanel>
+
+                        <ToggleSwitch
+                            x:Name="UiSoundsToggle"
+                            Header="UI interaction sounds"
+                            Toggled="UiSoundsToggle_Toggled" />
+
+                        <StackPanel Spacing="8">
+                            <TextBlock Style="{StaticResource BodyTextStyle}" Text="UI sound volume" />
+                            <Slider
+                                x:Name="UiSoundVolumeSlider"
+                                Maximum="100"
+                                Minimum="0"
+                                StepFrequency="1"
+                                ValueChanged="UiSoundVolumeSlider_ValueChanged" />
+                            <TextBlock x:Name="UiSoundVolumeLabel" Style="{StaticResource CaptionTextStyle}" />
+                        </StackPanel>
 
                         <StackPanel Spacing="4">
                             <TextBlock Style="{StaticResource SubtitleTextStyle}" Text="Detected encoders" />

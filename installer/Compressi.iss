@@ -1,5 +1,5 @@
 #define MyAppName "Compressi"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.0.9"
 #define MyAppPublisher "Compressi"
 #define MyAppExeName "Compressi.App.exe"
 
@@ -38,6 +38,13 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 UninstallDisplayIcon={app}\{#MyAppExeName}
 DisableProgramGroupPage=yes
+; Same AppId detects an existing install; reuse its folder and overwrite files.
+UsePreviousAppDir=yes
+UsePreviousGroup=yes
+UsePreviousTasks=yes
+DisableDirPage=auto
+CloseApplications=yes
+RestartApplications=no
 VersionInfoVersion={#MyAppVersion}.0
 VersionInfoProductName={#MyAppName}
 VersionInfoCompany={#MyAppPublisher}

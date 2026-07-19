@@ -24,6 +24,7 @@ public sealed class CompressViewModel : INotifyPropertyChanged
     private bool _isEncoding;
     private string? _errorMessage;
     private string? _infoMessage;
+    private string? _errorActionLabel;
     private CompressionPreset _preset;
     private OutputFormat? _outputFormat = Compressi.Core.Models.OutputFormat.Mp4;
     private double _progressPercent;
@@ -37,6 +38,8 @@ public sealed class CompressViewModel : INotifyPropertyChanged
     private bool _keepOriginalAudio;
     private string? _outputFilenamePattern;
     private string? _outputDirectoryOverride;
+    private int _propertyChangedBatchDepth;
+    private bool _hasBatchedPropertyChanged;
 
     public CompressViewModel()
         : this(new MediaProbeService(), new FfmpegEncodingService(), new HistoryStore(), new SettingsStore())
@@ -60,6 +63,7 @@ public sealed class CompressViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
     public event EventHandler? RerunRequested;
+    public event EventHandler? HistoryChanged;
 
     public AppSettings Settings => _settings;
 
@@ -89,9 +93,10 @@ public sealed class CompressViewModel : INotifyPropertyChanged
             }
 
             _result = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(HasResult));
-            OnPropertyChanged(nameof(ShowEmptyCompleteState));
+            NotifyUiStateChanged(
+                nameof(Result),
+                nameof(HasResult),
+                nameof(ShowEmptyCompleteState));
         }
     }
 
@@ -110,9 +115,12 @@ public sealed class CompressViewModel : INotifyPropertyChanged
             }
 
             _preset = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(PresetHelperText));
-            UpdateInfoMessage();
+            using (BatchPropertyChanged())
+            {
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(PresetHelperText));
+                UpdateInfoMessage();
+            }
         }
     }
 
@@ -127,8 +135,7 @@ public sealed class CompressViewModel : INotifyPropertyChanged
             }
 
             _outputFormat = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(CanStartCompression));
+            NotifyUiStateChanged(nameof(OutputFormat), nameof(CanStartCompression));
         }
     }
 
@@ -154,11 +161,12 @@ public sealed class CompressViewModel : INotifyPropertyChanged
             }
 
             _isProbing = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(CanStartCompression));
-            OnPropertyChanged(nameof(IsDropZoneEnabled));
-            OnPropertyChanged(nameof(IsInputLocked));
-            OnPropertyChanged(nameof(DropZoneMessage));
+            NotifyUiStateChanged(
+                nameof(IsProbing),
+                nameof(CanStartCompression),
+                nameof(IsDropZoneEnabled),
+                nameof(IsInputLocked),
+                nameof(DropZoneMessage));
         }
     }
 
@@ -173,13 +181,14 @@ public sealed class CompressViewModel : INotifyPropertyChanged
             }
 
             _isEncoding = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(CanStartCompression));
-            OnPropertyChanged(nameof(CanCancelCompression));
-            OnPropertyChanged(nameof(IsDropZoneEnabled));
-            OnPropertyChanged(nameof(IsInputLocked));
-            OnPropertyChanged(nameof(ShowEncodingProgress));
-            OnPropertyChanged(nameof(ShowEmptyCompleteState));
+            NotifyUiStateChanged(
+                nameof(IsEncoding),
+                nameof(CanStartCompression),
+                nameof(CanCancelCompression),
+                nameof(IsDropZoneEnabled),
+                nameof(IsInputLocked),
+                nameof(ShowEncodingProgress),
+                nameof(ShowEmptyCompleteState));
         }
     }
 
@@ -275,8 +284,22 @@ public sealed class CompressViewModel : INotifyPropertyChanged
             }
 
             _errorMessage = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(HasError));
+            NotifyUiStateChanged(nameof(ErrorMessage), nameof(HasError), nameof(HasErrorAction));
+        }
+    }
+
+    public string? ErrorActionLabel
+    {
+        get => _errorActionLabel;
+        private set
+        {
+            if (_errorActionLabel == value)
+            {
+                return;
+            }
+
+            _errorActionLabel = value;
+            NotifyUiStateChanged(nameof(ErrorActionLabel), nameof(HasErrorAction));
         }
     }
 
@@ -291,13 +314,31 @@ public sealed class CompressViewModel : INotifyPropertyChanged
             }
 
             _infoMessage = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(HasInfo));
+            NotifyUiStateChanged(nameof(InfoMessage), nameof(HasInfo));
         }
     }
 
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
+    public bool HasErrorAction => HasError && !string.IsNullOrWhiteSpace(ErrorActionLabel);
     public bool HasInfo => !string.IsNullOrWhiteSpace(InfoMessage);
+
+    public string OutputDirectoryDisplay
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(_outputDirectoryOverride))
+            {
+                return _outputDirectoryOverride;
+            }
+
+            if (!string.IsNullOrWhiteSpace(_settings.DefaultOutputFolder))
+            {
+                return _settings.DefaultOutputFolder;
+            }
+
+            return "Same folder as the source file";
+        }
+    }
     public string SourceFileName => SourceFile?.FileName ?? string.Empty;
     public string SourceMetadataLine => SourceFile?.MetadataLine ?? string.Empty;
     public string DropZoneMessage => IsProbing ? "Analyzing video..." : "Drag & drop a video file here";
@@ -335,7 +376,17 @@ public sealed class CompressViewModel : INotifyPropertyChanged
     public string? OutputDirectoryOverride
     {
         get => _outputDirectoryOverride;
-        set { _outputDirectoryOverride = value; OnPropertyChanged(); }
+        set
+        {
+            if (_outputDirectoryOverride == value)
+            {
+                return;
+            }
+
+            _outputDirectoryOverride = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(OutputDirectoryDisplay));
+        }
     }
 
     public void ReloadSettings()
@@ -344,28 +395,69 @@ public sealed class CompressViewModel : INotifyPropertyChanged
         Preset = _settings.DefaultPreset;
         OutputDirectoryOverride = _settings.DefaultOutputFolder;
         UpdateInfoMessage();
+        OnPropertyChanged(nameof(OutputDirectoryDisplay));
     }
 
     public async Task LoadFileFromPathAsync(string filePath)
     {
-        ErrorMessage = null;
-        Result = null;
-        IsProbing = true;
+        using (BatchPropertyChanged())
+        {
+            ClearStatusMessages();
+            Result = null;
+            IsProbing = true;
+        }
 
         try
         {
-            SourceFile = await _probeService.ProbeAsync(filePath).ConfigureAwait(true);
-            UpdateInfoMessage();
+            var probed = await _probeService.ProbeAsync(filePath).ConfigureAwait(true);
+            using (BatchPropertyChanged())
+            {
+                SourceFile = probed;
+                UpdateInfoMessage();
+            }
         }
         catch (Exception ex)
         {
             SourceFile = null;
-            ErrorMessage = ex.Message;
+            SetError(UserFacingErrors.FromException(ex));
         }
         finally
         {
             IsProbing = false;
         }
+    }
+
+    public string? GetPlannedOutputPath()
+    {
+        if (SourceFile is null || OutputFormat is null)
+        {
+            return null;
+        }
+
+        return CompressionPresetResolver.ResolveOutputPath(BuildJob(), ensureDirectoryExists: false);
+    }
+
+    public string? ValidateAdvancedOverrides()
+    {
+        if (!string.IsNullOrWhiteSpace(_resolutionOverride)
+            && !ResolutionParser.TryParse(_resolutionOverride, out _, out _))
+        {
+            return "Resolution must look like 1920x1080.";
+        }
+
+        if (!string.IsNullOrWhiteSpace(_frameRateOverride)
+            && (!int.TryParse(_frameRateOverride, out var fps) || fps <= 0))
+        {
+            return "Frame rate must be a positive whole number (e.g. 30).";
+        }
+
+        if (!string.IsNullOrWhiteSpace(_audioBitrateOverride)
+            && (!int.TryParse(_audioBitrateOverride, out var kbps) || kbps <= 0))
+        {
+            return "Audio bitrate must be a positive whole number in kbps (e.g. 128).";
+        }
+
+        return null;
     }
 
     public async Task StartCompressionAsync()
@@ -375,10 +467,21 @@ public sealed class CompressViewModel : INotifyPropertyChanged
             return;
         }
 
-        ErrorMessage = null;
-        Result = null;
-        IsEncoding = true;
-        ResetProgress();
+        var validationError = ValidateAdvancedOverrides();
+        if (validationError is not null)
+        {
+            SetError(new UserFacingError(validationError, null));
+            return;
+        }
+
+        using (BatchPropertyChanged())
+        {
+            ClearStatusMessages();
+            Result = null;
+            IsEncoding = true;
+            ResetProgress();
+        }
+
         var encodeStarted = DateTimeOffset.UtcNow;
         _lastUiProgressTimestamp = 0;
         _encodeCts = new CancellationTokenSource();
@@ -400,34 +503,60 @@ public sealed class CompressViewModel : INotifyPropertyChanged
             var result = await _encodingService
                 .EncodeAsync(job, progress, _encodeCts.Token)
                 .ConfigureAwait(true);
-            Result = result;
-            if (!string.IsNullOrWhiteSpace(result.InfoNote))
+            using (BatchPropertyChanged())
             {
-                InfoMessage = result.InfoNote;
+                Result = result;
+                if (!string.IsNullOrWhiteSpace(result.InfoNote))
+                {
+                    InfoMessage = result.InfoNote;
+                }
             }
 
             SaveHistory(result, CompressionJobStatus.Completed);
 
-            if (_settings.NotifyOnCompletion && App.MainWindow is not null)
+            if (_settings.NotifyOnCompletion && CompletionNotificationService.IsAvailable)
             {
-                // Toast notification deferred; completion is visible in-app.
+                CompletionNotificationService.ShowCompressionComplete(result.Output.FileName);
             }
         }
         catch (OperationCanceledException)
         {
             SaveCancelledHistory();
-            ErrorMessage = "Compression was cancelled.";
+            using (BatchPropertyChanged())
+            {
+                ErrorMessage = null;
+                ErrorActionLabel = null;
+                InfoMessage = "Compression was cancelled.";
+            }
         }
         catch (Exception ex)
         {
-            SaveFailedHistory(ex.Message);
-            ErrorMessage = ex.Message;
+            var facing = UserFacingErrors.FromException(ex);
+            SaveFailedHistory(facing.Message);
+            SetError(facing);
         }
         finally
         {
             _encodeCts?.Dispose();
             _encodeCts = null;
             IsEncoding = false;
+        }
+    }
+
+    public void ClearStatusMessages()
+    {
+        ErrorMessage = null;
+        ErrorActionLabel = null;
+        InfoMessage = null;
+    }
+
+    private void SetError(UserFacingError error)
+    {
+        using (BatchPropertyChanged())
+        {
+            InfoMessage = null;
+            ErrorMessage = error.Message;
+            ErrorActionLabel = error.ActionLabel;
         }
     }
 
@@ -456,21 +585,25 @@ public sealed class CompressViewModel : INotifyPropertyChanged
 
     public void ClearSourceFile()
     {
-        SourceFile = null;
-        ErrorMessage = null;
-        Result = null;
-        InfoMessage = null;
+        using (BatchPropertyChanged())
+        {
+            SourceFile = null;
+            Result = null;
+            ClearStatusMessages();
+        }
     }
 
     public void CompressAnother()
     {
-        Result = null;
-        SourceFile = null;
-        ErrorMessage = null;
-        InfoMessage = null;
-        ResetProgress();
-        Preset = _settings.DefaultPreset;
-        OutputFormat = Compressi.Core.Models.OutputFormat.Mp4;
+        using (BatchPropertyChanged())
+        {
+            Result = null;
+            SourceFile = null;
+            ClearStatusMessages();
+            ResetProgress();
+            Preset = _settings.DefaultPreset;
+            OutputFormat = Compressi.Core.Models.OutputFormat.Mp4;
+        }
     }
 
     public void RequestRerun(HistoryEntry entry)
@@ -483,8 +616,7 @@ public sealed class CompressViewModel : INotifyPropertyChanged
 
     private CompressionJob BuildJob()
     {
-        _settings = _settingsStore.Load();
-
+        // Use in-memory settings; ReloadSettings() refreshes after Settings save / encoder warmup.
         var useHardware = _settings.HardwareAcceleration && Preset != CompressionPreset.EightMB;
         // Prefer cached detection; fall back to catalog without forcing a blocking refresh on the UI path.
         var gpuEncoder = useHardware
@@ -513,13 +645,18 @@ public sealed class CompressViewModel : INotifyPropertyChanged
 
     private static string? ResolveGpuEncoder(string? detectedGpuEncoder)
     {
-        if (!string.IsNullOrWhiteSpace(detectedGpuEncoder)
-            && !string.Equals(detectedGpuEncoder, "None detected", StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(detectedGpuEncoder))
         {
-            return detectedGpuEncoder;
+            // Not persisted yet — fall back to catalog (may probe once).
+            return FfmpegEncoderCatalog.GetPreferredGpuEncoder();
         }
 
-        return FfmpegEncoderCatalog.GetPreferredGpuEncoder();
+        if (string.Equals(detectedGpuEncoder, "None detected", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        return detectedGpuEncoder;
     }
 
     private static int ResolveEncodeThreadCount(int requestedThreads, bool hardwareEnabled)
@@ -579,6 +716,7 @@ public sealed class CompressViewModel : INotifyPropertyChanged
             CompressionRatioPercent = result.CompressionRatioPercent,
             CreatedAt = DateTimeOffset.UtcNow,
         });
+        HistoryChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void SaveFailedHistory(string? _)
@@ -602,6 +740,7 @@ public sealed class CompressViewModel : INotifyPropertyChanged
             CompressionRatioPercent = 0,
             CreatedAt = DateTimeOffset.UtcNow,
         });
+        HistoryChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void SaveCancelledHistory()
@@ -625,6 +764,7 @@ public sealed class CompressViewModel : INotifyPropertyChanged
             CompressionRatioPercent = 0,
             CreatedAt = DateTimeOffset.UtcNow,
         });
+        HistoryChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void UpdateInfoMessage()
@@ -707,24 +847,85 @@ public sealed class CompressViewModel : INotifyPropertyChanged
 
     private void ResetProgress()
     {
-        ProgressPercent = 0;
-        ElapsedDisplay = "0:00";
-        RemainingDisplay = "--:--";
-        OutputSizeDisplay = "0 MB";
-        SpeedDisplay = string.Empty;
+        _progressPercent = 0;
+        _elapsedDisplay = "0:00";
+        _remainingDisplay = "--:--";
+        _outputSizeDisplay = "0 MB";
+        _speedDisplay = string.Empty;
+        OnPropertyChanged(nameof(ProgressPercent));
+        OnPropertyChanged(nameof(ElapsedDisplay));
+        OnPropertyChanged(nameof(RemainingDisplay));
+        OnPropertyChanged(nameof(OutputSizeDisplay));
+        OnPropertyChanged(nameof(SpeedDisplay));
     }
 
     private void NotifySourceChanged()
     {
-        OnPropertyChanged(nameof(SourceFile));
-        OnPropertyChanged(nameof(HasSourceFile));
-        OnPropertyChanged(nameof(CanStartCompression));
-        OnPropertyChanged(nameof(SourceFileName));
-        OnPropertyChanged(nameof(SourceMetadataLine));
+        NotifyUiStateChanged(
+            nameof(SourceFile),
+            nameof(HasSourceFile),
+            nameof(CanStartCompression),
+            nameof(SourceFileName),
+            nameof(SourceMetadataLine));
     }
+
+    private void NotifyUiStateChanged(params string[] propertyNames)
+    {
+        using (BatchPropertyChanged())
+        {
+            foreach (var propertyName in propertyNames)
+            {
+                OnPropertyChanged(propertyName);
+            }
+        }
+    }
+
+    private PropertyChangedBatch BatchPropertyChanged() => new(this);
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
+        if (_propertyChangedBatchDepth > 0)
+        {
+            _hasBatchedPropertyChanged = true;
+            return;
+        }
+
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    private void BeginPropertyChangedBatch()
+    {
+        if (_propertyChangedBatchDepth == 0)
+        {
+            _hasBatchedPropertyChanged = false;
+        }
+
+        _propertyChangedBatchDepth++;
+    }
+
+    private void EndPropertyChangedBatch()
+    {
+        _propertyChangedBatchDepth--;
+        if (_propertyChangedBatchDepth != 0 || !_hasBatchedPropertyChanged)
+        {
+            return;
+        }
+
+        _hasBatchedPropertyChanged = false;
+        // Null property name means "many properties changed" — listeners refresh UI once.
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+    }
+
+    private readonly struct PropertyChangedBatch : IDisposable
+    {
+        private readonly CompressViewModel _owner;
+
+        public PropertyChangedBatch(CompressViewModel owner)
+        {
+            _owner = owner;
+            _owner.BeginPropertyChangedBatch();
+        }
+
+        public void Dispose() => _owner.EndPropertyChangedBatch();
     }
 }
