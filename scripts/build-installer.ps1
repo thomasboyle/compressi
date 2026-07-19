@@ -69,15 +69,18 @@ if (Test-Path $PublishDir) {
     Remove-Item $PublishDir -Recurse -Force
 }
 
+# Do not rely on *.pubxml (gitignored); pass publish settings explicitly for CI.
 $publishArgs = @(
     $AppProject
     '-c', $Configuration
     '-r', "win-$Platform"
     "-p:Platform=$Platform"
-    '-p:PublishProfile=win-x64-setup'
+    "-p:PublishDir=$PublishDir"
     '-p:WindowsPackageType=None'
     '-p:WindowsAppSDKSelfContained=true'
     '-p:SelfContained=true'
+    '-p:PublishSingleFile=false'
+    '-p:PublishReadyToRun=true'
     '-p:PublishTrimmed=false'
     '-p:GenerateAppxPackageOnBuild=false'
 )
