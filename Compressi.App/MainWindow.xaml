@@ -9,13 +9,27 @@
     Title="Compressi"
     mc:Ignorable="d">
 
-    <Grid>
+    <Grid Background="{ThemeResource AppPageBackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <TitleBar x:Name="AppTitleBar" Title="Compressi">
+        <Border
+            Grid.RowSpan="2"
+            IsHitTestVisible="False"
+            Opacity="0.28">
+            <Border.Background>
+                <ImageBrush
+                    ImageSource="ms-appx:///Assets/ui/texture-grain.png"
+                    Stretch="UniformToFill" />
+            </Border.Background>
+        </Border>
+
+        <TitleBar
+            x:Name="AppTitleBar"
+            Title="Compressi"
+            Foreground="{ThemeResource AppInkBrush}">
             <TitleBar.IconSource>
                 <ImageIconSource ImageSource="Assets/AppLogo.png" />
             </TitleBar.IconSource>
@@ -26,8 +40,21 @@
             Grid.Row="1"
             IsBackButtonVisible="Collapsed"
             IsSettingsVisible="False"
+            OpenPaneLength="220"
             PaneDisplayMode="Left"
             SelectionChanged="NavView_SelectionChanged">
+
+            <NavigationView.Resources>
+                <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="#F8F0E3" />
+                <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#F8F0E3" />
+                <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
+                <SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="#C2C3A2" />
+                <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPointerOver" Color="#B5B895" />
+                <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPressed" Color="#A8AB88" />
+                <Thickness x:Key="NavigationViewContentMargin">0</Thickness>
+                <Thickness x:Key="NavigationViewContentGridBorderThickness">0</Thickness>
+                <CornerRadius x:Key="NavigationViewContentGridCornerRadius">0</CornerRadius>
+            </NavigationView.Resources>
 
             <NavigationView.PaneHeader>
                 <StackPanel
@@ -43,6 +70,7 @@
                         VerticalAlignment="Center"
                         FontSize="18"
                         FontWeight="SemiBold"
+                        Foreground="{ThemeResource AppInkBrush}"
                         Text="Compressi" />
                 </StackPanel>
             </NavigationView.PaneHeader>
@@ -50,17 +78,47 @@
             <NavigationView.MenuItems>
                 <NavigationViewItem Content="Compress" Tag="Compress">
                     <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE7C3;" />
+                        <BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/ui/nav-compress.png" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem Content="History" Icon="Clock" Tag="History" />
-                <NavigationViewItem Content="Settings" Icon="Setting" Tag="Settings" />
+                <NavigationViewItem Content="History" Tag="History">
+                    <NavigationViewItem.Icon>
+                        <BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/ui/nav-history.png" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Settings" Tag="Settings">
+                    <NavigationViewItem.Icon>
+                        <BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/ui/nav-settings.png" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
                 <NavigationViewItem Content="About" Tag="About">
                     <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE946;" />
+                        <BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/ui/nav-about.png" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
             </NavigationView.MenuItems>
+
+            <NavigationView.PaneFooter>
+                <StackPanel
+                    Margin="12,8,12,20"
+                    HorizontalAlignment="Center"
+                    Spacing="8">
+                    <Image
+                        Width="140"
+                        Height="170"
+                        HorizontalAlignment="Center"
+                        Source="ms-appx:///Assets/ui/smoothie.png"
+                        Stretch="Uniform" />
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="12"
+                        FontStyle="Italic"
+                        Foreground="{StaticResource ResultLabelBrush}"
+                        Text="Smooth results, every time."
+                        TextAlignment="Center"
+                        TextWrapping="WrapWholeWords" />
+                </StackPanel>
+            </NavigationView.PaneFooter>
 
             <ContentPresenter x:Name="ContentHost" />
         </NavigationView>

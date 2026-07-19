@@ -1,70 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <UserControl
-
     x:Class="Compressi_App.Controls.GlassPanel"
-
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-
     mc:Ignorable="d">
 
-
-
     <Border
-
         x:Name="ShadowHost"
-
         Background="Transparent"
-
         CornerRadius="{StaticResource GlassPanelCornerRadius}">
 
-
-
         <Grid>
-
             <Border
-
                 x:Name="GlassSurface"
-
                 Background="{ThemeResource GlassPanelFillBrush}"
-
                 BorderBrush="{ThemeResource GlassPanelBorderBrush}"
-
                 BorderThickness="1"
-
                 CornerRadius="{StaticResource GlassPanelCornerRadius}" />
 
-
-
             <Border
-
-                x:Name="SpecularHighlight"
-
-                Background="{ThemeResource GlassPanelSpecularBrush}"
-
+                x:Name="GrainOverlay"
                 CornerRadius="{StaticResource GlassPanelCornerRadius}"
-
-                IsHitTestVisible="False" />
-
-
+                IsHitTestVisible="False"
+                Opacity="0.22">
+                <Border.Background>
+                    <ImageBrush
+                        ImageSource="ms-appx:///Assets/ui/texture-grain.png"
+                        Stretch="UniformToFill" />
+                </Border.Background>
+            </Border>
 
             <ContentPresenter
-
                 x:Name="PanelContentHost"
-
                 Margin="24"
-
                 Content="{x:Bind PanelContent, Mode=OneWay}" />
-
         </Grid>
-
     </Border>
-
 </UserControl>
-

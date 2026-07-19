@@ -50,18 +50,13 @@
                                         IsActive="False"
                                         IsHitTestVisible="False"
                                         Visibility="Collapsed" />
-                                    <Border
+                                    <Image
                                         x:Name="DropZoneIcon"
-                                        Width="48"
-                                        Height="48"
-                                        Background="{StaticResource DropZoneIconBackgroundBrush}"
-                                        CornerRadius="12"
-                                        IsHitTestVisible="False">
-                                        <FontIcon
-                                            FontSize="22"
-                                            Foreground="{StaticResource PrimaryBlueBrush}"
-                                            Glyph="&#xE714;" />
-                                    </Border>
+                                        Width="56"
+                                        Height="56"
+                                        IsHitTestVisible="False"
+                                        Source="ms-appx:///Assets/ui/icon-camera-add.png"
+                                        Stretch="Uniform" />
                                     <TextBlock
                                         x:Name="DropZoneText"
                                         HorizontalAlignment="Center"
@@ -82,11 +77,24 @@
                                         HorizontalAlignment="Center"
                                         Style="{StaticResource GlassSecondaryButtonStyle}">
                                         <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <FontIcon FontSize="14" Glyph="&#xE838;" />
+                                            <Image
+                                                Width="16"
+                                                Height="16"
+                                                Source="ms-appx:///Assets/ui/icon-folder.png"
+                                                Stretch="Uniform" />
                                             <TextBlock Style="{StaticResource BodyTextStyle}" Text="Browse Files" />
                                         </StackPanel>
                                     </Button>
                                 </StackPanel>
+                                <Image
+                                    Width="56"
+                                    Height="56"
+                                    Margin="0,0,10,8"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Bottom"
+                                    IsHitTestVisible="False"
+                                    Source="ms-appx:///Assets/ui/deco-leaf-sprig.png"
+                                    Stretch="Uniform" />
                             </Grid>
 
                             <InfoBar
@@ -116,17 +124,12 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <Border
+                                    <Image
                                         Grid.Column="0"
-                                        Width="36"
-                                        Height="36"
-                                        Background="{StaticResource DropZoneIconBackgroundBrush}"
-                                        CornerRadius="8">
-                                        <FontIcon
-                                            FontSize="16"
-                                            Foreground="{StaticResource PrimaryBlueBrush}"
-                                            Glyph="&#xE714;" />
-                                    </Border>
+                                        Width="32"
+                                        Height="32"
+                                        Source="ms-appx:///Assets/ui/icon-camera-add.png"
+                                        Stretch="Uniform" />
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                                         <TextBlock x:Name="FileNameText" Style="{StaticResource BodyTextStyle}" />
                                         <TextBlock
@@ -167,7 +170,7 @@
                                         x:Name="Mp4FormatButton"
                                         Grid.Column="0"
                                         Checked="FormatRadioButton_Checked"
-                                        Content="MP4"
+                                        Content="MP4 (AV1)"
                                         GroupName="OutputFormat"
                                         Style="{StaticResource GlassFormatRadioButtonStyle}"
                                         Tag="Mp4"
@@ -176,7 +179,7 @@
                                         x:Name="MkvFormatButton"
                                         Grid.Column="1"
                                         Checked="FormatRadioButton_Checked"
-                                        Content="MKV"
+                                        Content="MKV (AV1)"
                                         GroupName="OutputFormat"
                                         Style="{StaticResource GlassFormatRadioButtonStyle}"
                                         Tag="Mkv"
@@ -185,7 +188,7 @@
                                         x:Name="WebmFormatButton"
                                         Grid.Column="2"
                                         Checked="FormatRadioButton_Checked"
-                                        Content="WebM"
+                                        Content="WebM (AV1)"
                                         GroupName="OutputFormat"
                                         Style="{StaticResource GlassFormatRadioButtonStyle}"
                                         Tag="WebM"
@@ -309,10 +312,14 @@
                                     HorizontalAlignment="Center"
                                     Orientation="Horizontal"
                                     Spacing="8">
-                                    <FontIcon FontSize="16" Foreground="White" Glyph="&#xE8A5;" />
+                                    <Image
+                                        Width="18"
+                                        Height="18"
+                                        Source="ms-appx:///Assets/ui/icon-leaf.png"
+                                        Stretch="Uniform" />
                                     <TextBlock
                                         FontWeight="{StaticResource FontWeightSemiBold}"
-                                        Foreground="White"
+                                        Foreground="{ThemeResource AppInkBrush}"
                                         Text="Start Compression" />
                                 </StackPanel>
                             </Button>
@@ -329,37 +336,47 @@
                         <StackPanel Spacing="24">
                             <TextBlock Style="{StaticResource SubtitleTextStyle}" Text="3. Results" />
 
-                            <StackPanel HorizontalAlignment="Center" Spacing="16">
-                                <Grid Width="120" Height="120">
-                                    <Ellipse Fill="{StaticResource FeatureBlueBackgroundBrush}" />
-                                    <FontIcon
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                        FontSize="40"
-                                        Foreground="{StaticResource PrimaryBlueBrush}"
-                                        Glyph="&#xE714;" />
-                                </Grid>
+                            <Grid>
+                                <Image
+                                    Width="220"
+                                    Height="180"
+                                    Margin="0,24,0,0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Top"
+                                    IsHitTestVisible="False"
+                                    Opacity="0.35"
+                                    Source="ms-appx:///Assets/ui/deco-results-wash.png"
+                                    Stretch="UniformToFill" />
 
-                                <StackPanel HorizontalAlignment="Center" Spacing="8" MaxWidth="360">
-                                    <TextBlock
+                                <StackPanel HorizontalAlignment="Center" Spacing="16">
+                                    <Image
+                                        Width="140"
+                                        Height="140"
                                         HorizontalAlignment="Center"
-                                        FontWeight="{StaticResource FontWeightSemiBold}"
-                                        Style="{StaticResource TitleTextStyle}"
-                                        Text="Your results will appear here"
-                                        TextAlignment="Center" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        Foreground="{StaticResource ResultLabelBrush}"
-                                        Style="{StaticResource BodyTextStyle}"
-                                        Text="Add a video and start compression to see preview, file details and compression stats."
-                                        TextAlignment="Center"
-                                        TextWrapping="WrapWholeWords" />
+                                        Source="ms-appx:///Assets/ui/results-empty.png"
+                                        Stretch="Uniform" />
+
+                                    <StackPanel HorizontalAlignment="Center" Spacing="8" MaxWidth="360">
+                                        <TextBlock
+                                            HorizontalAlignment="Center"
+                                            FontWeight="{StaticResource FontWeightSemiBold}"
+                                            Style="{StaticResource TitleTextStyle}"
+                                            Text="Your results will appear here"
+                                            TextAlignment="Center" />
+                                        <TextBlock
+                                            HorizontalAlignment="Center"
+                                            Foreground="{StaticResource ResultLabelBrush}"
+                                            Style="{StaticResource BodyTextStyle}"
+                                            Text="Add a video and start compression to see preview, file details and compression stats."
+                                            TextAlignment="Center"
+                                            TextWrapping="WrapWholeWords" />
+                                    </StackPanel>
                                 </StackPanel>
-                            </StackPanel>
+                            </Grid>
 
                             <Border
                                 Padding="16,14"
-                                Background="{StaticResource ResultSurfaceBrush}"
+                                Background="{StaticResource SecurityBannerFillBrush}"
                                 BorderBrush="{StaticResource SecurityBannerBorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="12">
@@ -368,20 +385,13 @@
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <Border
+                                    <Image
                                         Grid.Column="0"
-                                        Width="36"
-                                        Height="36"
+                                        Width="28"
+                                        Height="28"
                                         VerticalAlignment="Center"
-                                        Background="{StaticResource FeatureBlueBackgroundBrush}"
-                                        CornerRadius="8">
-                                        <FontIcon
-                                            HorizontalAlignment="Center"
-                                            VerticalAlignment="Center"
-                                            FontSize="16"
-                                            Foreground="{StaticResource PrimaryBlueBrush}"
-                                            Glyph="&#xEA18;" />
-                                    </Border>
+                                        Source="ms-appx:///Assets/ui/icon-shield.png"
+                                        Stretch="Uniform" />
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                                         <TextBlock
                                             FontWeight="{StaticResource FontWeightSemiBold}"

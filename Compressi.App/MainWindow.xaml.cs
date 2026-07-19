@@ -2,11 +2,9 @@ using Compressi.Core.Models;
 using Compressi_App.Services;
 using Compressi_App.Services.UiSounds;
 using Compressi_App.Views;
-using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 
 namespace Compressi_App;
 
@@ -23,18 +21,26 @@ public sealed partial class MainWindow : Window
         InitializeComponent();
         PerfProbe.MarkDuration("mainwindow_initialize_component", t0);
 
+        var backdropStart = System.Diagnostics.Stopwatch.GetTimestamp();
         ConfigureSystemBackdrop();
+        PerfProbe.MarkDuration("mainwindow_backdrop", backdropStart);
 
+        var titleBarStart = System.Diagnostics.Stopwatch.GetTimestamp();
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
+        PerfProbe.MarkDuration("mainwindow_titlebar", titleBarStart);
 
+        var iconStart = System.Diagnostics.Stopwatch.GetTimestamp();
         AppWindow.SetIcon("Assets/AppIcon.ico");
+        PerfProbe.MarkDuration("mainwindow_seticon", iconStart);
 
+        var wireStart = System.Diagnostics.Stopwatch.GetTimestamp();
         App.HistoryViewModel.RerunRequested += (_, entry) => RerunCompression(entry);
 
         _suppressSelectionChanged = true;
         NavView.SelectedItem = NavView.MenuItems[0];
         _suppressSelectionChanged = false;
+        PerfProbe.MarkDuration("mainwindow_wireup", wireStart);
     }
 
     /// <summary>
@@ -72,14 +78,8 @@ public sealed partial class MainWindow : Window
 
     private void ConfigureSystemBackdrop()
     {
-        if (DesktopAcrylicController.IsSupported())
-        {
-            SystemBackdrop = new DesktopAcrylicBackdrop();
-        }
-        else if (MicaController.IsSupported())
-        {
-            SystemBackdrop = new MicaBackdrop();
-        }
+        // Cottagecore paper UI uses a solid cream surface; skip system acrylic/mica.
+        SystemBackdrop = null;
     }
 
     private async void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)

@@ -7,113 +7,95 @@
         <ResourceDictionary Source="ms-appx:///Styles/Typography.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
+    <!-- Cottagecore / matcha paper theme (keys kept for existing pages) -->
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Default">
-            <SolidColorBrush x:Key="GlassPanelFillBrush" Color="#CCFFFFFF" />
-            <SolidColorBrush x:Key="GlassPanelBorderBrush" Color="#40FFFFFF" />
-            <LinearGradientBrush x:Key="GlassPanelSpecularBrush" StartPoint="0.5,0" EndPoint="0.5,1">
-                <GradientStop Color="#66FFFFFF" Offset="0" />
-                <GradientStop Color="#00FFFFFF" Offset="0.08" />
-                <GradientStop Color="#00FFFFFF" Offset="1" />
-            </LinearGradientBrush>
+            <SolidColorBrush x:Key="GlassPanelFillBrush" Color="#FFF8F0E3" />
+            <SolidColorBrush x:Key="GlassPanelBorderBrush" Color="#FFD2C8B4" />
+            <SolidColorBrush x:Key="GlassPanelSpecularBrush" Color="#00FFFFFF" />
+            <SolidColorBrush x:Key="AppPageBackgroundBrush" Color="#FFEAE2D5" />
+            <SolidColorBrush x:Key="AppInkBrush" Color="#FF2F2C28" />
+            <SolidColorBrush x:Key="NavSelectionBrush" Color="#FFC2C3A2" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Light">
+            <SolidColorBrush x:Key="GlassPanelFillBrush" Color="#FFF8F0E3" />
+            <SolidColorBrush x:Key="GlassPanelBorderBrush" Color="#FFD2C8B4" />
+            <SolidColorBrush x:Key="GlassPanelSpecularBrush" Color="#00FFFFFF" />
+            <SolidColorBrush x:Key="AppPageBackgroundBrush" Color="#FFEAE2D5" />
+            <SolidColorBrush x:Key="AppInkBrush" Color="#FF2F2C28" />
+            <SolidColorBrush x:Key="NavSelectionBrush" Color="#FFC2C3A2" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
-            <SolidColorBrush x:Key="GlassPanelFillBrush" Color="#B3333333" />
-            <SolidColorBrush x:Key="GlassPanelBorderBrush" Color="#33FFFFFF" />
-            <LinearGradientBrush x:Key="GlassPanelSpecularBrush" StartPoint="0.5,0" EndPoint="0.5,1">
-                <GradientStop Color="#33FFFFFF" Offset="0" />
-                <GradientStop Color="#00FFFFFF" Offset="0.08" />
-                <GradientStop Color="#00FFFFFF" Offset="1" />
-            </LinearGradientBrush>
+            <SolidColorBrush x:Key="GlassPanelFillBrush" Color="#FF2A2924" />
+            <SolidColorBrush x:Key="GlassPanelBorderBrush" Color="#FF4A463C" />
+            <SolidColorBrush x:Key="GlassPanelSpecularBrush" Color="#00FFFFFF" />
+            <SolidColorBrush x:Key="AppPageBackgroundBrush" Color="#FF1E1D1A" />
+            <SolidColorBrush x:Key="AppInkBrush" Color="#FFE8E0D0" />
+            <SolidColorBrush x:Key="NavSelectionBrush" Color="#FF6F7358" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 
-    <!-- Corner radii -->
-    <CornerRadius x:Key="GlassPanelCornerRadius">20</CornerRadius>
-    <CornerRadius x:Key="GlassButtonCornerRadius">12</CornerRadius>
-    <CornerRadius x:Key="GlassPillCornerRadius">24</CornerRadius>
+    <CornerRadius x:Key="GlassPanelCornerRadius">18</CornerRadius>
+    <CornerRadius x:Key="GlassButtonCornerRadius">10</CornerRadius>
+    <CornerRadius x:Key="GlassPillCornerRadius">14</CornerRadius>
 
-    <!-- Light theme glass surfaces -->
-    <Color x:Key="GlassPanelFillLightColor">#CCFFFFFF</Color>
-    <Color x:Key="GlassPanelFillDarkColor">#B3333333</Color>
-    <Color x:Key="GlassBorderHighlightColor">#40FFFFFF</Color>
-    <Color x:Key="GlassBorderHighlightDarkColor">#33FFFFFF</Color>
+    <Color x:Key="GlassPanelFillLightColor">#FFF8F0E3</Color>
+    <Color x:Key="GlassPanelFillDarkColor">#FF2A2924</Color>
+    <Color x:Key="GlassBorderHighlightColor">#FFD2C8B4</Color>
+    <Color x:Key="GlassBorderHighlightDarkColor">#FF4A463C</Color>
 
     <SolidColorBrush x:Key="GlassPanelFillLightBrush" Color="{StaticResource GlassPanelFillLightColor}" />
     <SolidColorBrush x:Key="GlassPanelFillDarkBrush" Color="{StaticResource GlassPanelFillDarkColor}" />
     <SolidColorBrush x:Key="GlassBorderHighlightBrush" Color="{StaticResource GlassBorderHighlightColor}" />
     <SolidColorBrush x:Key="GlassBorderHighlightDarkBrush" Color="{StaticResource GlassBorderHighlightDarkColor}" />
 
-    <!-- Primary accent -->
-    <Color x:Key="PrimaryBlueColor">#0078D4</Color>
-    <Color x:Key="PrimaryBlueLightColor">#2899F5</Color>
+    <!-- Primary accent = sage / olive (resource names retained) -->
+    <Color x:Key="PrimaryBlueColor">#FF8F9A6E</Color>
+    <Color x:Key="PrimaryBlueLightColor">#FFA7B18F</Color>
     <SolidColorBrush x:Key="PrimaryBlueBrush" Color="{StaticResource PrimaryBlueColor}" />
 
-    <!-- Result / success -->
-    <Color x:Key="SuccessGreenColor">#107C10</Color>
-    <Color x:Key="ResultSurfaceColor">#FFFFFF</Color>
-    <Color x:Key="ResultCardBorderColor">#E0E0E0</Color>
-    <Color x:Key="ResultLabelColor">#605E5C</Color>
+    <Color x:Key="SuccessGreenColor">#FF5F6B45</Color>
+    <Color x:Key="ResultSurfaceColor">#FFFBF6EC</Color>
+    <Color x:Key="ResultCardBorderColor">#FFD2C8B4</Color>
+    <Color x:Key="ResultLabelColor">#FF6B665C</Color>
     <SolidColorBrush x:Key="SuccessGreenBrush" Color="{StaticResource SuccessGreenColor}" />
     <SolidColorBrush x:Key="ResultSurfaceBrush" Color="{StaticResource ResultSurfaceColor}" />
     <SolidColorBrush x:Key="ResultCardBorderBrush" Color="{StaticResource ResultCardBorderColor}" />
     <SolidColorBrush x:Key="ResultLabelBrush" Color="{StaticResource ResultLabelColor}" />
 
-    <Color x:Key="PrimaryBlueHoverColor">#006CBE</Color>
-    <Color x:Key="PrimaryBlueHoverLightColor">#1A8AE6</Color>
-    <Color x:Key="PrimaryBluePressedColor">#005A9E</Color>
-    <Color x:Key="PrimaryBluePressedLightColor">#0078D4</Color>
+    <Color x:Key="PrimaryBlueHoverColor">#FF7E895F</Color>
+    <Color x:Key="PrimaryBlueHoverLightColor">#FF98A37F</Color>
+    <Color x:Key="PrimaryBluePressedColor">#FF6A744C</Color>
+    <Color x:Key="PrimaryBluePressedLightColor">#FF8F9A6E</Color>
 
-    <LinearGradientBrush x:Key="PrimaryBlueGradientBrush" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="{StaticResource PrimaryBlueLightColor}" Offset="0" />
-        <GradientStop Color="{StaticResource PrimaryBlueColor}" Offset="1" />
-    </LinearGradientBrush>
+    <SolidColorBrush x:Key="PrimaryBlueGradientBrush" Color="{StaticResource PrimaryBlueLightColor}" />
+    <SolidColorBrush x:Key="PrimaryBlueHoverGradientBrush" Color="{StaticResource PrimaryBlueHoverLightColor}" />
+    <SolidColorBrush x:Key="PrimaryBluePressedGradientBrush" Color="{StaticResource PrimaryBluePressedColor}" />
 
-    <LinearGradientBrush x:Key="PrimaryBlueHoverGradientBrush" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="{StaticResource PrimaryBlueHoverLightColor}" Offset="0" />
-        <GradientStop Color="{StaticResource PrimaryBlueHoverColor}" Offset="1" />
-    </LinearGradientBrush>
+    <SolidColorBrush x:Key="GlassSpecularHighlightBrush" Color="#00FFFFFF" />
+    <SolidColorBrush x:Key="GlassSpecularHighlightDarkBrush" Color="#00FFFFFF" />
 
-    <LinearGradientBrush x:Key="PrimaryBluePressedGradientBrush" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="{StaticResource PrimaryBluePressedLightColor}" Offset="0" />
-        <GradientStop Color="{StaticResource PrimaryBluePressedColor}" Offset="1" />
-    </LinearGradientBrush>
-
-    <LinearGradientBrush x:Key="GlassSpecularHighlightBrush" StartPoint="0.5,0" EndPoint="0.5,1">
-        <GradientStop Color="#66FFFFFF" Offset="0" />
-        <GradientStop Color="#00FFFFFF" Offset="0.08" />
-        <GradientStop Color="#00FFFFFF" Offset="1" />
-    </LinearGradientBrush>
-
-    <LinearGradientBrush x:Key="GlassSpecularHighlightDarkBrush" StartPoint="0.5,0" EndPoint="0.5,1">
-        <GradientStop Color="#33FFFFFF" Offset="0" />
-        <GradientStop Color="#00FFFFFF" Offset="0.08" />
-        <GradientStop Color="#00FFFFFF" Offset="1" />
-    </LinearGradientBrush>
-
-    <!-- Progress / slider -->
     <SolidColorBrush x:Key="GlassTrackBrush" Color="#33000000" />
     <SolidColorBrush x:Key="GlassTrackDarkBrush" Color="#33FFFFFF" />
     <SolidColorBrush x:Key="InputSurfaceBrush" Color="{StaticResource ResultSurfaceColor}" />
 
-    <!-- Drop zone -->
-    <Color x:Key="DropZoneFillColor">#0A0078D4</Color>
-    <Color x:Key="DropZoneFillHoverColor">#180078D4</Color>
-    <Color x:Key="DropZoneStrokeColor">#990078D4</Color>
-    <Color x:Key="DropZoneStrokeHoverColor">#FF0078D4</Color>
+    <Color x:Key="DropZoneFillColor">#14A7B18F</Color>
+    <Color x:Key="DropZoneFillHoverColor">#28A7B18F</Color>
+    <Color x:Key="DropZoneStrokeColor">#FF6B744F</Color>
+    <Color x:Key="DropZoneStrokeHoverColor">#FF4F5838</Color>
     <SolidColorBrush x:Key="DropZoneFillBrush" Color="{StaticResource DropZoneFillColor}" />
     <SolidColorBrush x:Key="DropZoneFillHoverBrush" Color="{StaticResource DropZoneFillHoverColor}" />
     <SolidColorBrush x:Key="DropZoneStrokeBrush" Color="{StaticResource DropZoneStrokeColor}" />
     <SolidColorBrush x:Key="DropZoneStrokeHoverBrush" Color="{StaticResource DropZoneStrokeHoverColor}" />
-    <SolidColorBrush x:Key="DropZoneIconBackgroundBrush" Color="#1A0078D4" />
+    <SolidColorBrush x:Key="DropZoneIconBackgroundBrush" Color="#33C2C3A2" />
 
-    <Color x:Key="FeaturePurpleColor">#8764B8</Color>
-    <Color x:Key="FeatureOrangeColor">#CA5010</Color>
-    <Color x:Key="FeatureGreenBackgroundColor">#E6F4EA</Color>
-    <Color x:Key="FeaturePurpleBackgroundColor">#F3EEF8</Color>
-    <Color x:Key="FeatureBlueBackgroundColor">#E8F4FD</Color>
-    <Color x:Key="FeatureOrangeBackgroundColor">#FDF3ED</Color>
-    <Color x:Key="SecurityBannerBorderColor">#B4D6FA</Color>
+    <Color x:Key="FeaturePurpleColor">#FF7A6B5D</Color>
+    <Color x:Key="FeatureOrangeColor">#FFB07A45</Color>
+    <Color x:Key="FeatureGreenBackgroundColor">#FFE8ECD9</Color>
+    <Color x:Key="FeaturePurpleBackgroundColor">#FFF0E8DC</Color>
+    <Color x:Key="FeatureBlueBackgroundColor">#FFE8ECD9</Color>
+    <Color x:Key="FeatureOrangeBackgroundColor">#FFF5EADB</Color>
+    <Color x:Key="SecurityBannerBorderColor">#FFC2C3A2</Color>
     <SolidColorBrush x:Key="FeaturePurpleBrush" Color="{StaticResource FeaturePurpleColor}" />
     <SolidColorBrush x:Key="FeatureOrangeBrush" Color="{StaticResource FeatureOrangeColor}" />
     <SolidColorBrush x:Key="FeatureGreenBackgroundBrush" Color="{StaticResource FeatureGreenBackgroundColor}" />
@@ -121,6 +103,7 @@
     <SolidColorBrush x:Key="FeatureBlueBackgroundBrush" Color="{StaticResource FeatureBlueBackgroundColor}" />
     <SolidColorBrush x:Key="FeatureOrangeBackgroundBrush" Color="{StaticResource FeatureOrangeBackgroundColor}" />
     <SolidColorBrush x:Key="SecurityBannerBorderBrush" Color="{StaticResource SecurityBannerBorderColor}" />
+    <SolidColorBrush x:Key="SecurityBannerFillBrush" Color="#FFE8ECD9" />
 
     <Style x:Key="GlassInputComboBoxStyle" TargetType="ComboBox">
         <Setter Property="Background" Value="{StaticResource InputSurfaceBrush}" />
@@ -129,6 +112,7 @@
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Padding" Value="12,8" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="Foreground" Value="{ThemeResource AppInkBrush}" />
     </Style>
 
     <Style x:Key="GlassFieldLabelStyle" TargetType="TextBlock">
@@ -139,11 +123,11 @@
 
     <Style x:Key="GlassFormatRadioButtonStyle" TargetType="RadioButton">
         <Setter Property="Background" Value="{StaticResource InputSurfaceBrush}" />
-        <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource AppInkBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource ResultCardBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="8" />
-        <Setter Property="Padding" Value="14,12" />
+        <Setter Property="Padding" Value="12,10" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -159,23 +143,12 @@
                         BorderThickness="{TemplateBinding BorderThickness}"
                         CornerRadius="{TemplateBinding CornerRadius}"
                         Padding="{TemplateBinding Padding}">
-                        <Grid>
-                            <ContentPresenter
-                                x:Name="ContentPresenter"
-                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                VerticalAlignment="Center"
-                                Content="{TemplateBinding Content}"
-                                Foreground="{TemplateBinding Foreground}" />
-                            <FontIcon
-                                x:Name="CheckIcon"
-                                Margin="0,4,4,0"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Top"
-                                FontSize="11"
-                                Foreground="{StaticResource PrimaryBlueBrush}"
-                                Glyph="&#xE73E;"
-                                Visibility="Collapsed" />
-                        </Grid>
+                        <ContentPresenter
+                            x:Name="ContentPresenter"
+                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalAlignment="Center"
+                            Content="{TemplateBinding Content}"
+                            Foreground="{TemplateBinding Foreground}" />
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Normal" />
@@ -186,6 +159,9 @@
                             <VisualStateGroup x:Name="CheckStates">
                                 <VisualState x:Name="Checked">
                                     <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder" Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource NavSelectionBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder" Storyboard.TargetProperty="BorderBrush">
                                             <DiscreteObjectKeyFrame KeyTime="0">
                                                 <DiscreteObjectKeyFrame.Value>
@@ -193,18 +169,9 @@
                                                 </DiscreteObjectKeyFrame.Value>
                                             </DiscreteObjectKeyFrame>
                                         </ObjectAnimationUsingKeyFrames>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="CheckIcon" Storyboard.TargetProperty="Visibility">
-                                            <DiscreteObjectKeyFrame KeyTime="0" Value="Visible" />
-                                        </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </VisualState>
-                                <VisualState x:Name="Unchecked">
-                                    <Storyboard>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="CheckIcon" Storyboard.TargetProperty="Visibility">
-                                            <DiscreteObjectKeyFrame KeyTime="0" Value="Collapsed" />
-                                        </ObjectAnimationUsingKeyFrames>
-                                    </Storyboard>
-                                </VisualState>
+                                <VisualState x:Name="Unchecked" />
                                 <VisualState x:Name="Indeterminate" />
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
@@ -215,20 +182,22 @@
     </Style>
 
     <Style x:Key="GlassExpanderStyle" TargetType="Expander">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Background" Value="{StaticResource InputSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ResultCardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
     </Style>
 
-    <!-- Primary button -->
     <Style x:Key="GlassPrimaryButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="{StaticResource PrimaryBlueGradientBrush}" />
-        <Setter Property="Foreground" Value="White" />
+        <Setter Property="Foreground" Value="{ThemeResource AppInkBrush}" />
         <Setter Property="CornerRadius" Value="{StaticResource GlassButtonCornerRadius}" />
-        <Setter Property="Padding" Value="20,12" />
+        <Setter Property="Padding" Value="20,14" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
-        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BorderBrush" Value="#FF6A744C" />
+        <Setter Property="BorderThickness" Value="1,1,1,3" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -237,8 +206,8 @@
                         Padding="{TemplateBinding Padding}"
                         HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
                         VerticalAlignment="{TemplateBinding VerticalAlignment}"
-                        HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                        VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
@@ -254,9 +223,6 @@
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Background">
                                             <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource PrimaryBlueHoverGradientBrush}" />
                                         </ObjectAnimationUsingKeyFrames>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
-                                            <DiscreteObjectKeyFrame KeyTime="0" Value="White" />
-                                        </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </VisualState>
                                 <VisualState x:Name="Pressed">
@@ -264,20 +230,21 @@
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Background">
                                             <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource PrimaryBluePressedGradientBrush}" />
                                         </ObjectAnimationUsingKeyFrames>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
-                                            <DiscreteObjectKeyFrame KeyTime="0" Value="White" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="BorderThickness">
+                                            <DiscreteObjectKeyFrame KeyTime="0">
+                                                <DiscreteObjectKeyFrame.Value>
+                                                    <Thickness>1</Thickness>
+                                                </DiscreteObjectKeyFrame.Value>
+                                            </DiscreteObjectKeyFrame>
                                         </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </VisualState>
                                 <VisualState x:Name="Disabled">
                                     <Storyboard>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Background">
-                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource PrimaryBlueGradientBrush}" />
-                                        </ObjectAnimationUsingKeyFrames>
                                         <DoubleAnimation
                                             Storyboard.TargetName="ContentPresenter"
                                             Storyboard.TargetProperty="Opacity"
-                                            To="0.4"
+                                            To="0.45"
                                             Duration="0" />
                                     </Storyboard>
                                 </VisualState>
@@ -289,28 +256,27 @@
         </Setter>
     </Style>
 
-    <!-- Secondary glass button -->
     <Style x:Key="GlassSecondaryButtonStyle" TargetType="Button">
-        <Setter Property="Background" Value="#33FFFFFF" />
-        <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+        <Setter Property="Background" Value="{StaticResource ResultSurfaceBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource AppInkBrush}" />
         <Setter Property="CornerRadius" Value="{StaticResource GlassButtonCornerRadius}" />
         <Setter Property="Padding" Value="16,10" />
-        <Setter Property="BorderBrush" Value="{StaticResource GlassBorderHighlightBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{StaticResource ResultCardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1,1,1,2" />
     </Style>
 
     <Style x:Key="GlassDangerButtonStyle" TargetType="Button" BasedOn="{StaticResource GlassSecondaryButtonStyle}">
-        <Setter Property="Foreground" Value="#C42B2B" />
-        <Setter Property="BorderBrush" Value="#66C42B2B" />
+        <Setter Property="Foreground" Value="#FF9B3B3B" />
+        <Setter Property="BorderBrush" Value="#669B3B3B" />
     </Style>
 
     <Style x:Key="GlassSecondaryToggleButtonStyle" TargetType="ToggleButton">
-        <Setter Property="Background" Value="#33FFFFFF" />
-        <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+        <Setter Property="Background" Value="{StaticResource ResultSurfaceBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource AppInkBrush}" />
         <Setter Property="CornerRadius" Value="{StaticResource GlassButtonCornerRadius}" />
         <Setter Property="Padding" Value="16,10" />
-        <Setter Property="BorderBrush" Value="{StaticResource GlassBorderHighlightBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{StaticResource ResultCardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1,1,1,2" />
     </Style>
 
 </ResourceDictionary>

@@ -33,6 +33,20 @@
     <Content Include="Assets\AppIcon.ico" />
     <Content Include="Assets\Wide310x150Logo.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
+    <Content Include="Assets\ui\smoothie.png" />
+    <Content Include="Assets\ui\icon-camera-add.png" />
+    <Content Include="Assets\ui\icon-folder.png" />
+    <Content Include="Assets\ui\icon-leaf.png" />
+    <Content Include="Assets\ui\icon-shield.png" />
+    <Content Include="Assets\ui\nav-compress.png" />
+    <Content Include="Assets\ui\nav-history.png" />
+    <Content Include="Assets\ui\nav-settings.png" />
+    <Content Include="Assets\ui\nav-about.png" />
+    <Content Include="Assets\ui\deco-leaf-sprig.png" />
+    <Content Include="Assets\ui\deco-results-wash.png" />
+    <Content Include="Assets\ui\results-empty.png" />
+    <Content Include="Assets\ui\pattern-stipple.png" />
+    <Content Include="Assets\ui\texture-grain.png" />
     <Content Include="Assets\ffmpeg\ffmpeg.exe" Condition="Exists('Assets\ffmpeg\ffmpeg.exe')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
