@@ -17,6 +17,14 @@
   #define SetupIcon ""
 #endif
 
+#ifndef Compression
+  #define Compression "lzma2/max"
+#endif
+
+#ifndef SolidCompression
+  #define SolidCompression "yes"
+#endif
+
 [Setup]
 AppId={{5AAAF59C-5618-440F-A551-DC78DA6208DC}
 AppName={#MyAppName}
@@ -31,8 +39,8 @@ OutputBaseFilename=Compressi-Setup-{#MyAppVersion}-x64
 #if SetupIcon != ""
 SetupIconFile={#SetupIcon}
 #endif
-Compression=lzma2/max
-SolidCompression=yes
+Compression={#Compression}
+SolidCompression={#SolidCompression}
 WizardStyle=modern
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog

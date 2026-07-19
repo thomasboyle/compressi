@@ -7,10 +7,30 @@ param(
     [string]$Configuration = 'Release',
 
     # Optional semver (e.g. 1.0.10). Overrides Inno Setup + assembly version for this build.
-    [string]$Version
+    [string]$Version,
+
+    # CI defaults favor wall-clock; local defaults favor smaller installers / faster app startup.
+    [bool]$ReadyToRun,
+
+    [ValidateSet('lzma2/max', 'lzma2', 'lzma2/fast', 'zip')]
+    [string]$Compression,
+
+    [bool]$SolidCompression
 )
 
+$isCI = $env:CI -eq 'true'
+if (-not $PSBoundParameters.ContainsKey('ReadyToRun')) {
+    $ReadyToRun = -not $isCI
+}
+if (-not $PSBoundParameters.ContainsKey('Compression')) {
+    $Compression = if ($isCI) { 'lzma2/fast' } else { 'lzma2/max' }
+}
+if (-not $PSBoundParameters.ContainsKey('SolidCompression')) {
+    $SolidCompression = -not $isCI
+}
+
 $ErrorActionPreference = 'Stop'
+$PSNativeCommandUseErrorActionPreference = $false
 
 $Root = Resolve-Path (Join-Path $PSScriptRoot '..')
 $AppProject = Join-Path $Root 'Compressi.App\Compressi.App.csproj'
@@ -18,6 +38,11 @@ $IssFile = Join-Path $Root 'installer\Compressi.iss'
 $OutputDir = Join-Path $Root 'installer\output'
 $PublishDir = Join-Path $Root "Compressi.App\bin\$Configuration\net8.0-windows10.0.26100.0\win-$Platform\setup-publish"
 $FfmpegDir = Join-Path $Root 'Compressi.App\Assets\ffmpeg'
+$TotalSw = [System.Diagnostics.Stopwatch]::StartNew()
+
+function Write-StepTime([string]$Label, [System.Diagnostics.Stopwatch]$Sw) {
+    Write-Host ("[time] {0}: {1:N1}s" -f $Label, $Sw.Elapsed.TotalSeconds)
+}
 
 function Find-Iscc {
     $candidates = @(
@@ -65,11 +90,12 @@ if ($Version) {
 }
 
 Write-Host "Publishing Compressi ($Configuration, $Platform, unpackaged)..."
+Write-Host "PublishReadyToRun=$ReadyToRun Compression=$Compression SolidCompression=$SolidCompression"
 if (Test-Path $PublishDir) {
     Remove-Item $PublishDir -Recurse -Force
 }
 
-# Do not rely on *.pubxml (gitignored); pass publish settings explicitly for CI.
+# Do not rely on *.pubxml (gitignored historically); pass publish settings explicitly for CI.
 $publishArgs = @(
     $AppProject
     '-c', $Configuration
@@ -80,9 +106,12 @@ $publishArgs = @(
     '-p:WindowsAppSDKSelfContained=true'
     '-p:SelfContained=true'
     '-p:PublishSingleFile=false'
-    '-p:PublishReadyToRun=true'
+    "-p:PublishReadyToRun=$ReadyToRun"
     '-p:PublishTrimmed=false'
     '-p:GenerateAppxPackageOnBuild=false'
+    '-p:RunAnalyzers=false'
+    '-p:RunAnalyzersDuringBuild=false'
+    '-p:EnableNuGetAudit=false'
 )
 if ($Version) {
     $publishArgs += "-p:Version=$Version"
@@ -91,11 +120,12 @@ if ($Version) {
     $publishArgs += "-p:InformationalVersion=$Version"
 }
 
+$publishSw = [System.Diagnostics.Stopwatch]::StartNew()
 dotnet publish @publishArgs
-
 if ($LASTEXITCODE -ne 0) {
     throw "dotnet publish failed with exit code $LASTEXITCODE"
 }
+Write-StepTime 'dotnet publish' $publishSw
 
 $appExe = Join-Path $PublishDir 'Compressi.App.exe'
 if (-not (Test-Path $appExe)) {
@@ -105,9 +135,12 @@ if (-not (Test-Path $appExe)) {
 New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 
 $setupIcon = Join-Path $Root 'Compressi.App\Assets\AppIcon.ico'
+$solidValue = if ($SolidCompression) { 'yes' } else { 'no' }
 $isccArgs = @(
     "/DPublishDir=$PublishDir"
     "/DOutputDir=$OutputDir"
+    "/DCompression=$Compression"
+    "/DSolidCompression=$solidValue"
 )
 if ($Version) {
     $isccArgs += "/DMyAppVersion=$Version"
@@ -117,11 +150,12 @@ if (Test-Path $setupIcon) {
 }
 
 Write-Host "Compiling installer with Inno Setup..."
+$isccSw = [System.Diagnostics.Stopwatch]::StartNew()
 & $iscc @isccArgs $IssFile
-
 if ($LASTEXITCODE -ne 0) {
     throw "Inno Setup compilation failed with exit code $LASTEXITCODE"
 }
+Write-StepTime 'Inno Setup' $isccSw
 
 $setupExe = Get-ChildItem $OutputDir -Filter 'Compressi-Setup-*-x64.exe' |
     Where-Object { $_.Name -match '^Compressi-Setup-\d+\.\d+\.\d+-x64\.exe$' } |
@@ -136,6 +170,7 @@ if (-not $setupExe) {
 $stableSetup = Join-Path $OutputDir 'Compressi-Setup-x64.exe'
 Copy-Item -LiteralPath $setupExe.FullName -Destination $stableSetup -Force
 
+Write-StepTime 'total build-installer' $TotalSw
 Write-Host ""
 Write-Host "Installer ready:"
 Write-Host "  $($setupExe.FullName)"

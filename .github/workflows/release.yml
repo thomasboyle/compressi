@@ -12,6 +12,12 @@ concurrency:
 permissions:
   contents: write
 
+env:
+  DOTNET_NOLOGO: '1'
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: '1'
+  NUGET_XMLDOC_MODE: skip
+
 jobs:
   release:
     if: >-
@@ -23,21 +29,42 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '8.0.x'
+          cache: true
+          cache-dependency-path: |
+            Compressi.App/Compressi.App.csproj
+            Compressi.Core/Compressi.Core.csproj
 
-      - name: Install Inno Setup
+      - name: Install tools
         shell: pwsh
-        run: choco install innosetup --yes --no-progress
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $false
+          $sw = [System.Diagnostics.Stopwatch]::StartNew()
 
-      - name: Download FFmpeg
-        shell: pwsh
-        run: .\scripts\get-ffmpeg.ps1
+          $inno = Start-Job -ScriptBlock {
+            choco install innosetup --yes --no-progress
+            if ($LASTEXITCODE -ne 0) { throw "choco install innosetup failed: $LASTEXITCODE" }
+          }
+          $ffmpeg = Start-Job -ScriptBlock {
+            Set-Location $using:PWD
+            & .\scripts\get-ffmpeg.ps1
+          }
+
+          try {
+            Wait-Job $inno, $ffmpeg | Out-Null
+            Receive-Job $inno -ErrorAction Stop
+            Receive-Job $ffmpeg -ErrorAction Stop
+          }
+          finally {
+            Remove-Job $inno, $ffmpeg -Force -ErrorAction SilentlyContinue
+          }
+
+          Write-Host ("[time] install tools: {0:N1}s" -f $sw.Elapsed.TotalSeconds)
 
       - name: Resolve next version
         id: version
@@ -48,30 +75,18 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $PSNativeCommandUseErrorActionPreference = $false
 
-          $tags = gh release list --limit 100 --json tagName --jq '.[].tagName'
-          if ($LASTEXITCODE -ne 0) {
-            throw "Failed to list GitHub releases."
-          }
+          $tag = gh api repos/${{ github.repository }}/releases/latest --jq .tag_name 2>$null
+          if ($LASTEXITCODE -ne 0) { $tag = '' }
 
-          $latest = ($tags -split "`n" |
-            ForEach-Object { $_.Trim() } |
-            Where-Object { $_ -match '^v?(\d+)\.(\d+)\.(\d+)$' } |
-            Sort-Object {
-              if ($_ -match '^v?(\d+)\.(\d+)\.(\d+)$') {
-                [version]"$($Matches[1]).$($Matches[2]).$($Matches[3])"
-              }
-            } -Descending |
-            Select-Object -First 1)
-
-          if ($latest -match '^v?(\d+)\.(\d+)\.(\d+)$') {
+          if ($tag -match '^v?(\d+)\.(\d+)\.(\d+)$') {
             $version = "{0}.{1}.{2}" -f [int]$Matches[1], [int]$Matches[2], ([int]$Matches[3] + 1)
           } else {
             $version = '1.0.0'
           }
 
           $releaseTag = "v$version"
-          $existing = $tags -split "`n" | ForEach-Object { $_.Trim() }
-          if ($existing -contains $releaseTag) {
+          gh api "repos/${{ github.repository }}/releases/tags/$releaseTag" 2>$null | Out-Null
+          if ($LASTEXITCODE -eq 0) {
             throw "Release $releaseTag already exists."
           }
 
@@ -90,6 +105,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $false
           $version = '${{ steps.version.outputs.version }}'
           $tag = '${{ steps.version.outputs.tag }}'
           $sha = '${{ github.sha }}'
@@ -111,7 +127,12 @@ jobs:
             "- ``Compressi-Setup-$version-x64.exe`` — this version"
           ) -join "`n"
 
+          $sw = [System.Diagnostics.Stopwatch]::StartNew()
           gh release create $tag $stable $versioned `
             --title "Compressi $version" `
             --notes $notes `
             --target $sha
+          if ($LASTEXITCODE -ne 0) {
+            throw "gh release create failed: $LASTEXITCODE"
+          }
+          Write-Host ("[time] publish release: {0:N1}s" -f $sw.Elapsed.TotalSeconds)
