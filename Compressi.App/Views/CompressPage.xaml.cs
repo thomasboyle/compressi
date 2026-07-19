@@ -20,8 +20,8 @@ public sealed partial class CompressPage : Page, IAppPage
 {
     private static readonly SolidColorBrush DropZoneDefaultFill = new(Color.FromArgb(0x14, 0xA7, 0xB1, 0x8F));
     private static readonly SolidColorBrush DropZoneHoverFill = new(Color.FromArgb(0x28, 0xA7, 0xB1, 0x8F));
-    private static readonly SolidColorBrush DropZoneDefaultStroke = new(Color.FromArgb(0xFF, 0x6B, 0x74, 0x4F));
-    private static readonly SolidColorBrush DropZoneHoverStroke = new(Color.FromArgb(0xFF, 0x4F, 0x58, 0x38));
+    private static readonly SolidColorBrush DropZoneDefaultStroke = new(Color.FromArgb(0xFF, 0x4F, 0x58, 0x38));
+    private static readonly SolidColorBrush DropZoneHoverStroke = new(Color.FromArgb(0xFF, 0x2A, 0x32, 0x20));
 
     private bool _suppressFormatToggle;
     private bool _suppressPresetSync;

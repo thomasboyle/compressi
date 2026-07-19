@@ -7,24 +7,26 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
+    <!-- Double outline reads more like a retro window frame -->
     <Border
         x:Name="ShadowHost"
-        Background="Transparent"
+        Padding="2"
+        Background="{ThemeResource GlassPanelBorderBrush}"
         CornerRadius="{StaticResource GlassPanelCornerRadius}">
 
         <Grid>
             <Border
                 x:Name="GlassSurface"
                 Background="{ThemeResource GlassPanelFillBrush}"
-                BorderBrush="{ThemeResource GlassPanelBorderBrush}"
+                BorderBrush="#66FFFFFF"
                 BorderThickness="1"
-                CornerRadius="{StaticResource GlassPanelCornerRadius}" />
+                CornerRadius="14" />
 
             <Border
                 x:Name="GrainOverlay"
-                CornerRadius="{StaticResource GlassPanelCornerRadius}"
+                CornerRadius="14"
                 IsHitTestVisible="False"
-                Opacity="0.22">
+                Opacity="0.28">
                 <Border.Background>
                     <ImageBrush
                         ImageSource="ms-appx:///Assets/ui/texture-grain.png"
@@ -34,7 +36,7 @@
 
             <ContentPresenter
                 x:Name="PanelContentHost"
-                Margin="24"
+                Margin="22"
                 Content="{x:Bind PanelContent, Mode=OneWay}" />
         </Grid>
     </Border>

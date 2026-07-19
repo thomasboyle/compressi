@@ -24,13 +24,13 @@
                             <Grid x:Name="DropZone" MinHeight="200">
                                 <Rectangle
                                     x:Name="DropZoneOutline"
-                                    RadiusX="12"
-                                    RadiusY="12"
+                                    RadiusX="10"
+                                    RadiusY="10"
                                     Fill="{StaticResource DropZoneFillBrush}"
                                     IsHitTestVisible="False"
                                     Stroke="{StaticResource DropZoneStrokeBrush}"
-                                    StrokeDashArray="6,4"
-                                    StrokeThickness="2" />
+                                    StrokeDashArray="4,3"
+                                    StrokeThickness="2.5" />
                                 <Border
                                     x:Name="DropZoneHitTarget"
                                     AllowDrop="True"
