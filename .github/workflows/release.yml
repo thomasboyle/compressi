@@ -46,25 +46,39 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $false
 
-          $tag = (gh release view --json tagName --jq .tagName 2>$null)
-          if ($LASTEXITCODE -ne 0) { $tag = '' }
+          $tags = gh release list --limit 100 --json tagName --jq '.[].tagName'
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to list GitHub releases."
+          }
 
-          if ($tag -match '^v?(\d+)\.(\d+)\.(\d+)$') {
+          $latest = ($tags -split "`n" |
+            ForEach-Object { $_.Trim() } |
+            Where-Object { $_ -match '^v?(\d+)\.(\d+)\.(\d+)$' } |
+            Sort-Object {
+              if ($_ -match '^v?(\d+)\.(\d+)\.(\d+)$') {
+                [version]"$($Matches[1]).$($Matches[2]).$($Matches[3])"
+              }
+            } -Descending |
+            Select-Object -First 1)
+
+          if ($latest -match '^v?(\d+)\.(\d+)\.(\d+)$') {
             $version = "{0}.{1}.{2}" -f [int]$Matches[1], [int]$Matches[2], ([int]$Matches[3] + 1)
           } else {
             $version = '1.0.0'
           }
 
           $releaseTag = "v$version"
-          gh release view $releaseTag 2>$null | Out-Null
-          if ($LASTEXITCODE -eq 0) {
+          $existing = $tags -split "`n" | ForEach-Object { $_.Trim() }
+          if ($existing -contains $releaseTag) {
             throw "Release $releaseTag already exists."
           }
 
-          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          "tag=$releaseTag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "tag=$releaseTag" >> $env:GITHUB_OUTPUT
           Write-Host "Next release: $releaseTag"
+          exit 0
 
       - name: Build installer
         shell: pwsh
