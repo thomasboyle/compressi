@@ -110,29 +110,6 @@
                     </NavigationViewItem>
                 </NavigationView.MenuItems>
 
-                <NavigationView.PaneFooter>
-                    <StackPanel
-                        Margin="8,0,8,18"
-                        HorizontalAlignment="Center"
-                        Spacing="4">
-                        <Image
-                            Width="140"
-                            Height="155"
-                            HorizontalAlignment="Center"
-                            Source="ms-appx:///Assets/ui/smoothie.png"
-                            Stretch="Uniform" />
-                        <TextBlock
-                            Width="124"
-                            HorizontalAlignment="Center"
-                            FontFamily="{StaticResource AppPixelFontFamily}"
-                            FontSize="12"
-                            Foreground="{StaticResource ResultLabelBrush}"
-                            Text="Smooth results,&#x0a;every time."
-                            TextAlignment="Center"
-                            TextWrapping="WrapWholeWords" />
-                    </StackPanel>
-                </NavigationView.PaneFooter>
-
                 <ContentPresenter x:Name="ContentHost" />
             </NavigationView>
         </Border>
