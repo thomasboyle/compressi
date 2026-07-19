@@ -4,7 +4,10 @@ param(
     [string]$Platform = 'x64',
 
     [ValidateSet('Debug', 'Release')]
-    [string]$Configuration = 'Release'
+    [string]$Configuration = 'Release',
+
+    # Optional semver (e.g. 1.0.10). Overrides Inno Setup + assembly version for this build.
+    [string]$Version
 )
 
 $ErrorActionPreference = 'Stop'
@@ -54,21 +57,38 @@ Then re-run this script.
 "@
 }
 
+if ($Version) {
+    if ($Version -notmatch '^\d+\.\d+\.\d+$') {
+        throw "Version must look like major.minor.patch (got '$Version')."
+    }
+    Write-Host "Using version $Version"
+}
+
 Write-Host "Publishing Compressi ($Configuration, $Platform, unpackaged)..."
 if (Test-Path $PublishDir) {
     Remove-Item $PublishDir -Recurse -Force
 }
 
-dotnet publish $AppProject `
-    -c $Configuration `
-    -r "win-$Platform" `
-    -p:Platform=$Platform `
-    -p:PublishProfile=win-x64-setup `
-    -p:WindowsPackageType=None `
-    -p:WindowsAppSDKSelfContained=true `
-    -p:SelfContained=true `
-    -p:PublishTrimmed=false `
-    -p:GenerateAppxPackageOnBuild=false
+$publishArgs = @(
+    $AppProject
+    '-c', $Configuration
+    '-r', "win-$Platform"
+    "-p:Platform=$Platform"
+    '-p:PublishProfile=win-x64-setup'
+    '-p:WindowsPackageType=None'
+    '-p:WindowsAppSDKSelfContained=true'
+    '-p:SelfContained=true'
+    '-p:PublishTrimmed=false'
+    '-p:GenerateAppxPackageOnBuild=false'
+)
+if ($Version) {
+    $publishArgs += "-p:Version=$Version"
+    $publishArgs += "-p:AssemblyVersion=$Version.0"
+    $publishArgs += "-p:FileVersion=$Version.0"
+    $publishArgs += "-p:InformationalVersion=$Version"
+}
+
+dotnet publish @publishArgs
 
 if ($LASTEXITCODE -ne 0) {
     throw "dotnet publish failed with exit code $LASTEXITCODE"
@@ -86,6 +106,9 @@ $isccArgs = @(
     "/DPublishDir=$PublishDir"
     "/DOutputDir=$OutputDir"
 )
+if ($Version) {
+    $isccArgs += "/DMyAppVersion=$Version"
+}
 if (Test-Path $setupIcon) {
     $isccArgs += "/DSetupIcon=$setupIcon"
 }
@@ -98,6 +121,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $setupExe = Get-ChildItem $OutputDir -Filter 'Compressi-Setup-*-x64.exe' |
+    Where-Object { $_.Name -match '^Compressi-Setup-\d+\.\d+\.\d+-x64\.exe$' } |
     Sort-Object LastWriteTime -Descending |
     Select-Object -First 1
 

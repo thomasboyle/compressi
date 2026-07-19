@@ -1,0 +1,103 @@
+name: Release
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      !contains(github.event.head_commit.message, '[skip release]')
+    runs-on: windows-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --yes --no-progress
+
+      - name: Download FFmpeg
+        shell: pwsh
+        run: .\scripts\get-ffmpeg.ps1
+
+      - name: Resolve next version
+        id: version
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $tag = (gh release view --json tagName --jq .tagName 2>$null)
+          if ($LASTEXITCODE -ne 0) { $tag = '' }
+
+          if ($tag -match '^v?(\d+)\.(\d+)\.(\d+)$') {
+            $version = "{0}.{1}.{2}" -f [int]$Matches[1], [int]$Matches[2], ([int]$Matches[3] + 1)
+          } else {
+            $version = '1.0.0'
+          }
+
+          $releaseTag = "v$version"
+          gh release view $releaseTag 2>$null | Out-Null
+          if ($LASTEXITCODE -eq 0) {
+            throw "Release $releaseTag already exists."
+          }
+
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "tag=$releaseTag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "Next release: $releaseTag"
+
+      - name: Build installer
+        shell: pwsh
+        run: .\scripts\build-installer.ps1 -Version '${{ steps.version.outputs.version }}'
+
+      - name: Publish GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $version = '${{ steps.version.outputs.version }}'
+          $tag = '${{ steps.version.outputs.tag }}'
+          $sha = '${{ github.sha }}'
+          $repo = '${{ github.repository }}'
+          $versioned = "installer\output\Compressi-Setup-$version-x64.exe"
+          $stable = 'installer\output\Compressi-Setup-x64.exe'
+
+          if (-not (Test-Path $versioned) -or -not (Test-Path $stable)) {
+            throw "Expected installer outputs missing."
+          }
+
+          $notes = @(
+            "## Compressi $version"
+            ''
+            "Windows x64 installer (auto-built from ``$sha``)."
+            ''
+            '### Download'
+            "- [Compressi-Setup-x64.exe](https://github.com/$repo/releases/latest/download/Compressi-Setup-x64.exe) — always the latest build"
+            "- ``Compressi-Setup-$version-x64.exe`` — this version"
+          ) -join "`n"
+
+          gh release create $tag $stable $versioned `
+            --title "Compressi $version" `
+            --notes $notes `
+            --target $sha

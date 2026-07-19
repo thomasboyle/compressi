@@ -1,5 +1,7 @@
 #define MyAppName "Compressi"
-#define MyAppVersion "1.0.9"
+#ifndef MyAppVersion
+  #define MyAppVersion "1.0.9"
+#endif
 #define MyAppPublisher "Compressi"
 #define MyAppExeName "Compressi.App.exe"
 

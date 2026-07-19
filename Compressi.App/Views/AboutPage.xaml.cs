@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Reflection;
 using Compressi.Core.Services;
 using Microsoft.UI.Xaml.Controls;
 
@@ -21,7 +22,7 @@ public sealed partial class AboutPage : Page, IAppPage
         if (!_versionBound)
         {
             _versionBound = true;
-            VersionText.Text = "Version 1.0.9";
+            VersionText.Text = $"Version {GetAppVersion()}";
         }
 
         if (_cachedFfmpegBlurb is not null)
@@ -47,6 +48,17 @@ public sealed partial class AboutPage : Page, IAppPage
         {
             FfmpegText.Text = blurb;
         }
+    }
+
+    private static string GetAppVersion()
+    {
+        var version = Assembly.GetExecutingAssembly().GetName().Version;
+        if (version is null)
+        {
+            return "unknown";
+        }
+
+        return $"{version.Major}.{version.Minor}.{version.Build}";
     }
 
     private static string QueryFfmpegVersion()
