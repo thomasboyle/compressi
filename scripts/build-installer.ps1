@@ -18,16 +18,17 @@ param(
     [bool]$SolidCompression
 )
 
-$isCI = $env:CI -eq 'true'
+# CI and local both prioritize download size for auto-update.
 if (-not $PSBoundParameters.ContainsKey('ReadyToRun')) {
-    $ReadyToRun = -not $isCI
+    # ReadyToRun speeds cold start but inflates the installer; keep it off for release packs.
+    $ReadyToRun = $false
 }
 if (-not $PSBoundParameters.ContainsKey('Compression')) {
-    # lzma2/fast beat zip on CI wall-clock; local builds keep max for smaller downloads.
-    $Compression = if ($isCI) { 'lzma2/fast' } else { 'lzma2/max' }
+    # Prefer smallest download size for auto-update (installer is mostly native binaries).
+    $Compression = 'lzma2/max'
 }
 if (-not $PSBoundParameters.ContainsKey('SolidCompression')) {
-    $SolidCompression = -not $isCI
+    $SolidCompression = $true
 }
 
 $ErrorActionPreference = 'Stop'
@@ -69,8 +70,9 @@ if (-not (Test-Path $IssFile)) {
 
 $ffmpeg = Join-Path $FfmpegDir 'ffmpeg.exe'
 $ffprobe = Join-Path $FfmpegDir 'ffprobe.exe'
-if (-not (Test-Path $ffmpeg) -or -not (Test-Path $ffprobe)) {
-    throw "FFmpeg binaries missing under $FfmpegDir (need ffmpeg.exe and ffprobe.exe)."
+$ffmpegDlls = @(Get-ChildItem -LiteralPath $FfmpegDir -Filter '*.dll' -File -ErrorAction SilentlyContinue)
+if (-not (Test-Path $ffmpeg) -or -not (Test-Path $ffprobe) -or $ffmpegDlls.Count -eq 0) {
+    throw "FFmpeg shared build missing under $FfmpegDir (need ffmpeg.exe, ffprobe.exe, and codec DLLs). Run scripts/get-ffmpeg.ps1."
 }
 
 $iscc = Find-Iscc
@@ -131,6 +133,27 @@ Write-StepTime 'dotnet publish' $publishSw
 $appExe = Join-Path $PublishDir 'Compressi.App.exe'
 if (-not (Test-Path $appExe)) {
     throw "Published app not found: $appExe"
+}
+
+# Windows App SDK self-contained publish pulls optional AI/ONNX runtimes we do not use.
+$unusedPublishPatterns = @(
+    'onnxruntime.dll'
+    'DirectML.dll'
+    'Microsoft.ML.OnnxRuntime.dll'
+    'Microsoft.Windows.AI*.dll'
+    'Microsoft.Windows.AI*.winmd'
+    'Microsoft.Windows.AI*.Projection.dll'
+)
+$removedBytes = [long]0
+foreach ($pattern in $unusedPublishPatterns) {
+    Get-ChildItem -LiteralPath $PublishDir -Recurse -File -Filter $pattern -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $removedBytes += $_.Length
+            Remove-Item -LiteralPath $_.FullName -Force
+        }
+}
+if ($removedBytes -gt 0) {
+    Write-Host ("Stripped unused AI/ONNX publish files: {0:N1} MB" -f ($removedBytes / 1MB))
 }
 
 New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null

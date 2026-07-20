@@ -44,7 +44,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: Compressi.App/Assets/ffmpeg
-          key: ffmpeg-win64-gpl-v1
+          key: ffmpeg-win64-gpl-shared-v1
 
       - name: Download FFmpeg
         if: steps.cache-ffmpeg.outputs.cache-hit != 'true'

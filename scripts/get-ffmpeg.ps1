@@ -1,6 +1,8 @@
-# Downloads bundled FFmpeg/ffprobe into Compressi.App/Assets/ffmpeg.
+# Downloads bundled FFmpeg/ffprobe (shared GPL build) into Compressi.App/Assets/ffmpeg.
+# Shared build is used so ffmpeg.exe and ffprobe.exe share one set of DLLs (~100MB smaller
+# than two static binaries). ffplay is intentionally omitted.
 param(
-    [string]$Url = 'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip'
+    [string]$Url = 'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl-shared.zip'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -20,21 +22,33 @@ try {
     Write-Host "Extracting..."
     Expand-Archive -LiteralPath $ZipPath -DestinationPath $TempRoot -Force
 
-    $ffmpeg = Get-ChildItem -Path $TempRoot -Recurse -Filter 'ffmpeg.exe' |
-        Where-Object { $_.DirectoryName -match '[\\/]bin$' } |
-        Select-Object -First 1
-    $ffprobe = Get-ChildItem -Path $TempRoot -Recurse -Filter 'ffprobe.exe' |
-        Where-Object { $_.DirectoryName -match '[\\/]bin$' } |
+    $binDir = Get-ChildItem -Path $TempRoot -Recurse -Directory |
+        Where-Object { $_.Name -eq 'bin' } |
         Select-Object -First 1
 
-    if (-not $ffmpeg -or -not $ffprobe) {
+    if (-not $binDir) {
+        throw "FFmpeg bin directory not found inside downloaded archive."
+    }
+
+    $ffmpeg = Join-Path $binDir.FullName 'ffmpeg.exe'
+    $ffprobe = Join-Path $binDir.FullName 'ffprobe.exe'
+    if (-not (Test-Path $ffmpeg) -or -not (Test-Path $ffprobe)) {
         throw "ffmpeg.exe / ffprobe.exe not found inside downloaded archive."
     }
 
-    Copy-Item -LiteralPath $ffmpeg.FullName -Destination (Join-Path $DestDir 'ffmpeg.exe') -Force
-    Copy-Item -LiteralPath $ffprobe.FullName -Destination (Join-Path $DestDir 'ffprobe.exe') -Force
+    Get-ChildItem -LiteralPath $DestDir -Force |
+        Where-Object { $_.Name -ne '.gitkeep' } |
+        Remove-Item -Recurse -Force
 
-    Write-Host "FFmpeg ready in $DestDir"
+    Copy-Item -LiteralPath $ffmpeg -Destination (Join-Path $DestDir 'ffmpeg.exe') -Force
+    Copy-Item -LiteralPath $ffprobe -Destination (Join-Path $DestDir 'ffprobe.exe') -Force
+
+    Get-ChildItem -LiteralPath $binDir.FullName -Filter '*.dll' -File |
+        Copy-Item -Destination $DestDir -Force
+
+    $copied = Get-ChildItem -LiteralPath $DestDir -File | Where-Object { $_.Name -ne '.gitkeep' }
+    $totalMb = [math]::Round((($copied | Measure-Object Length -Sum).Sum) / 1MB, 1)
+    Write-Host "FFmpeg ready in $DestDir ($($copied.Count) files, ${totalMb} MB)"
 }
 finally {
     Remove-Item -LiteralPath $TempRoot -Recurse -Force -ErrorAction SilentlyContinue

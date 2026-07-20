@@ -94,6 +94,10 @@
     <Content Include="Assets\ffmpeg\ffprobe.exe" Condition="Exists('Assets\ffmpeg\ffprobe.exe')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <!-- Shared FFmpeg build: codecs live in these DLLs next to the tools. -->
+    <Content Include="Assets\ffmpeg\*.dll" Condition="Exists('Assets\ffmpeg')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

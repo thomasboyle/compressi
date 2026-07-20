@@ -34,6 +34,7 @@ publish-log.txt
 
 ## FFmpeg binaries (download separately for dev)
 Compressi.App/Assets/ffmpeg/*.exe
+Compressi.App/Assets/ffmpeg/*.dll
 
 ## Local scratch
 _prune_git.txt
