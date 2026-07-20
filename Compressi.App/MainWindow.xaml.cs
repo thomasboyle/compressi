@@ -64,7 +64,6 @@ public sealed partial class MainWindow : Window
         PerfProbe.MarkDuration("show_compress_page", showStart);
         PerfProbe.Mark("tti");
 
-        DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, PrecreateRemainingPages);
         // Always revalidate on launch so a release published after the last session is noticed.
         DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () => _ = _updateService.CheckForUpdatesAsync(force: true));
     }
@@ -195,15 +194,6 @@ public sealed partial class MainWindow : Window
         }
 
         _suppressSelectionChanged = false;
-    }
-
-    private void PrecreateRemainingPages()
-    {
-        var t0 = System.Diagnostics.Stopwatch.GetTimestamp();
-        _ = GetOrCreatePage("History");
-        _ = GetOrCreatePage("Settings");
-        _ = GetOrCreatePage("About");
-        PerfProbe.MarkDuration("precreate_remaining_pages", t0);
     }
 
     private void ShowPage(string tag, bool playSound = true)

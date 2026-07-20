@@ -135,14 +135,32 @@ if (-not (Test-Path $appExe)) {
     throw "Published app not found: $appExe"
 }
 
-# Windows App SDK self-contained publish pulls optional AI/ONNX runtimes we do not use.
+# Optional surfaces that can still land in self-contained output even with component packages.
+# Do NOT strip Microsoft.UI.Xaml.Phone.dll — WinUI initializes it at startup.
 $unusedPublishPatterns = @(
+    # AI / ML
     'onnxruntime.dll'
     'DirectML.dll'
     'Microsoft.ML.OnnxRuntime.dll'
-    'Microsoft.Windows.AI*.dll'
-    'Microsoft.Windows.AI*.winmd'
-    'Microsoft.Windows.AI*.Projection.dll'
+    'Microsoft.Windows.AI*'
+    'Microsoft.Windows.Internal.AI*'
+    # Widgets
+    'Microsoft.Windows.Widgets*'
+    # WebView2 (WinUI dependency; Compressi never hosts a web view)
+    'Microsoft.Web.WebView2*'
+    'WebView2Loader.dll'
+    # Phone control satellite MUIs only (keep Microsoft.UI.Xaml.Phone.dll)
+    'Microsoft.UI.Xaml.Phone.dll.mui'
+    # Debug / symbol helpers not needed at runtime
+    'Microsoft.DiaSymReader*'
+    'mscordaccore*'
+    'mscordbi.dll'
+    # Unused BCL / projections
+    'Microsoft.VisualBasic*'
+    'Microsoft.Security.Authentication.OAuth*'
+    'System.Net.Mail.dll'
+    # Win2D leftovers if a transitive package reintroduces them
+    'Microsoft.Graphics.Canvas*'
 )
 $removedBytes = [long]0
 foreach ($pattern in $unusedPublishPatterns) {
@@ -152,8 +170,20 @@ foreach ($pattern in $unusedPublishPatterns) {
             Remove-Item -LiteralPath $_.FullName -Force
         }
 }
+
+# Drop leftover empty locale folders that only held Phone.mui (or are now empty).
+Get-ChildItem -LiteralPath $PublishDir -Directory -ErrorAction SilentlyContinue |
+    Where-Object {
+        $_.Name -match '^[a-z]{2}([_-][a-zA-Z0-9]+)*$' -and
+        $_.Name -notin @('en', 'en-us', 'en-US', 'en-GB') -and
+        -not (Get-ChildItem -LiteralPath $_.FullName -Recurse -File -ErrorAction SilentlyContinue | Select-Object -First 1)
+    } |
+    ForEach-Object {
+        Remove-Item -LiteralPath $_.FullName -Recurse -Force -ErrorAction SilentlyContinue
+    }
+
 if ($removedBytes -gt 0) {
-    Write-Host ("Stripped unused AI/ONNX publish files: {0:N1} MB" -f ($removedBytes / 1MB))
+    Write-Host ("Stripped unused WinUI/.NET publish files: {0:N1} MB" -f ($removedBytes / 1MB))
 }
 
 New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
