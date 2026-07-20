@@ -18,4 +18,11 @@ public static class EncodingConstants
     public const int EightMbPreset = 6;
 
     public const int DefaultAudioBitrateKbps = 128;
+
+    // libx264 uses a different CRF scale than AV1.
+    public const int BalancedH264Crf = 23;
+    public const int UltraH264Crf = 28;
+    public const string BalancedH264Preset = "fast";
+    public const string UltraH264Preset = "medium";
+    public const string EightMbH264Preset = "medium";
 }

@@ -16,6 +16,11 @@ public static class EncodePreflightValidator
             throw new InvalidOperationException("Could not detect a supported video codec in this file.");
         }
 
+        if (job.Format == OutputFormat.WebM && job.VideoCodec == VideoCodec.H264)
+        {
+            throw new InvalidOperationException("WebM does not support H.264. Choose AV1, or use MP4/MKV.");
+        }
+
         if (job.Preset == CompressionPreset.EightMB)
         {
             var plan = EightMbBitrateResolver.Resolve(job.Source, job.Advanced);

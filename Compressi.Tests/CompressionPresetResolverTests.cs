@@ -117,6 +117,53 @@ public class CompressionPresetResolverTests
     }
 
     [Fact]
+    public void Resolve_EightMb_H264_UsesLibx264TwoPass()
+    {
+        var job = new CompressionJob
+        {
+            Source = CreateSource(),
+            Preset = CompressionPreset.EightMB,
+            Format = OutputFormat.Mp4,
+            VideoCodec = VideoCodec.H264,
+            ThreadCount = 8,
+        };
+
+        var plan = CompressionPresetResolver.Resolve(job);
+
+        Assert.Equal(2, plan.Passes.Count);
+        var passOne = plan.Passes[0].Arguments;
+        Assert.Contains("libx264", passOne);
+        Assert.Contains("-b:v", passOne);
+        Assert.Contains("-maxrate", passOne);
+        Assert.Contains("-pass", passOne);
+        Assert.Contains("yuv420p", passOne);
+        Assert.DoesNotContain("libsvtav1", passOne);
+        Assert.False(plan.UseHardwareAcceleration);
+        Assert.True(plan.TargetVideoBitrateKbps > 0);
+    }
+
+    [Fact]
+    public void BuildEightMbCorrectivePass_H264_IsSinglePassLibx264()
+    {
+        var job = new CompressionJob
+        {
+            Source = CreateSource(frameRate: 60),
+            Preset = CompressionPreset.EightMB,
+            Format = OutputFormat.Mp4,
+            VideoCodec = VideoCodec.H264,
+            ThreadCount = 4,
+        };
+
+        var plan = CompressionPresetResolver.Resolve(job);
+        var corrective = CompressionPresetResolver.BuildEightMbCorrectivePass(job, plan, adjustedBitrateKbps: 400);
+
+        Assert.Contains("libx264", corrective.Arguments);
+        Assert.Contains("400k", corrective.Arguments);
+        Assert.DoesNotContain("-pass", corrective.Arguments);
+        Assert.Null(corrective.PassLogFilePrefix);
+    }
+
+    [Fact]
     public void BuildEightMbCorrectivePass_IsSinglePassUsingFrozenPlan()
     {
         var job = new CompressionJob

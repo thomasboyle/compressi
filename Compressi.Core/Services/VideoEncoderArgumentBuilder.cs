@@ -108,6 +108,66 @@ internal static class VideoEncoderArgumentBuilder
         args.Add(threadCount.ToString(CultureInfo.InvariantCulture));
     }
 
+    public static void AppendCpuH264Args(IList<string> args, int threadCount, int crf, string preset)
+    {
+        args.Add("-c:v");
+        args.Add("libx264");
+        args.Add("-crf");
+        args.Add(crf.ToString(CultureInfo.InvariantCulture));
+        args.Add("-preset");
+        args.Add(preset);
+        args.Add("-pix_fmt");
+        args.Add("yuv420p");
+        args.Add("-threads");
+        args.Add(threadCount.ToString(CultureInfo.InvariantCulture));
+    }
+
+    public static void AppendCpuH264BitrateArgs(
+        IList<string> args,
+        int threadCount,
+        int bitrateKbps,
+        string preset,
+        int passNumber,
+        string passLogFile)
+    {
+        AppendCpuH264BitrateCore(args, threadCount, bitrateKbps, preset);
+        args.Add("-pass");
+        args.Add(passNumber.ToString(CultureInfo.InvariantCulture));
+        args.Add("-passlogfile");
+        args.Add(passLogFile);
+    }
+
+    public static void AppendCpuH264SinglePassBitrateArgs(
+        IList<string> args,
+        int threadCount,
+        int bitrateKbps,
+        string preset)
+    {
+        AppendCpuH264BitrateCore(args, threadCount, bitrateKbps, preset);
+    }
+
+    private static void AppendCpuH264BitrateCore(
+        IList<string> args,
+        int threadCount,
+        int bitrateKbps,
+        string preset)
+    {
+        args.Add("-c:v");
+        args.Add("libx264");
+        args.Add("-b:v");
+        args.Add($"{bitrateKbps}k");
+        args.Add("-maxrate");
+        args.Add($"{bitrateKbps}k");
+        args.Add("-bufsize");
+        args.Add($"{Math.Max(bitrateKbps * 2, bitrateKbps)}k");
+        args.Add("-preset");
+        args.Add(preset);
+        args.Add("-pix_fmt");
+        args.Add("yuv420p");
+        args.Add("-threads");
+        args.Add(threadCount.ToString(CultureInfo.InvariantCulture));
+    }
+
     public static void AppendGpuAv1Args(IList<string> args, string gpuEncoder, int quality)
     {
         args.Add("-c:v");

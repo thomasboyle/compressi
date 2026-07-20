@@ -189,35 +189,58 @@
                                         x:Name="Mp4FormatButton"
                                         Grid.Column="0"
                                         Checked="FormatRadioButton_Checked"
-                                        Content="MP4 (AV1)"
+                                        Content="MP4"
                                         GroupName="OutputFormat"
                                         Style="{StaticResource GlassFormatRadioButtonStyle}"
                                         Tag="Mp4"
-                                        ToolTipService.ToolTip="Best compatibility (AV1)" />
+                                        ToolTipService.ToolTip="Best compatibility" />
                                     <RadioButton
                                         x:Name="MkvFormatButton"
                                         Grid.Column="1"
                                         Checked="FormatRadioButton_Checked"
-                                        Content="MKV (AV1)"
+                                        Content="MKV"
                                         GroupName="OutputFormat"
                                         Style="{StaticResource GlassFormatRadioButtonStyle}"
                                         Tag="Mkv"
-                                        ToolTipService.ToolTip="Flexible container (AV1)" />
+                                        ToolTipService.ToolTip="Flexible container" />
                                     <RadioButton
                                         x:Name="WebmFormatButton"
                                         Grid.Column="2"
                                         Checked="FormatRadioButton_Checked"
-                                        Content="WebM (AV1)"
+                                        Content="WebM"
                                         GroupName="OutputFormat"
                                         Style="{StaticResource GlassFormatRadioButtonStyle}"
                                         Tag="WebM"
-                                        ToolTipService.ToolTip="Web-friendly container (AV1)" />
+                                        ToolTipService.ToolTip="Web-friendly container (AV1 only)" />
                                 </Grid>
-                                <TextBlock
-                                    Foreground="{StaticResource ResultLabelBrush}"
-                                    Style="{StaticResource CaptionTextStyle}"
-                                    Text="MP4 is best for sharing. All formats use AV1."
-                                    Visibility="Collapsed" />
+                            </StackPanel>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Style="{StaticResource GlassFieldLabelStyle}" Text="Codec" />
+                                <Grid ColumnSpacing="0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <RadioButton
+                                        x:Name="H264CodecButton"
+                                        Grid.Column="0"
+                                        Checked="CodecRadioButton_Checked"
+                                        Content="H.264"
+                                        GroupName="VideoCodec"
+                                        Style="{StaticResource GlassFormatRadioButtonStyle}"
+                                        Tag="H264"
+                                        ToolTipService.ToolTip="Widest device and player support" />
+                                    <RadioButton
+                                        x:Name="Av1CodecButton"
+                                        Grid.Column="1"
+                                        Checked="CodecRadioButton_Checked"
+                                        Content="AV1"
+                                        GroupName="VideoCodec"
+                                        Style="{StaticResource GlassFormatRadioButtonStyle}"
+                                        Tag="Av1"
+                                        ToolTipService.ToolTip="Smaller files at the same quality" />
+                                </Grid>
                             </StackPanel>
 
                             <StackPanel Spacing="4">
@@ -232,9 +255,9 @@
                                         Tag="Ultra"
                                         ToolTipService.ToolTip="Smallest file size with reduced video quality. Best for archiving or slow connections." />
                                     <ComboBoxItem
-                                        Content="8 MB Target (Recommended)"
+                                        Content="8MB"
                                         Tag="EightMB"
-                                        ToolTipService.ToolTip="Targets an 8 MB file while keeping audio and frame rate as high as possible. Great for Discord and chat sharing." />
+                                        ToolTipService.ToolTip="Targets an 8MB file while keeping audio and frame rate as high as possible. Great for Discord and chat sharing." />
                                     <ComboBoxItem
                                         Content="Balanced"
                                         Tag="Balanced"

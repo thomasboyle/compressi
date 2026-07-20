@@ -39,9 +39,9 @@
                                 Tag="Ultra"
                                 ToolTipService.ToolTip="Smallest file size with reduced video quality. Best for archiving or slow connections." />
                             <ComboBoxItem
-                                Content="8 MB Target (Recommended)"
+                                Content="8MB"
                                 Tag="EightMB"
-                                ToolTipService.ToolTip="Targets an 8 MB file while keeping audio and frame rate as high as possible. Great for Discord and chat sharing." />
+                                ToolTipService.ToolTip="Targets an 8MB file while keeping audio and frame rate as high as possible. Great for Discord and chat sharing." />
                             <ComboBoxItem
                                 Content="Balanced"
                                 Tag="Balanced"

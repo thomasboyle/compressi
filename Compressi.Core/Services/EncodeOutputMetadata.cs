@@ -14,7 +14,12 @@ internal static class EncodeOutputMetadata
             Height = plan.OutputHeight > 0 ? plan.OutputHeight : job.Source.Height,
             FrameRate = plan.OutputFrameRate > 0 ? plan.OutputFrameRate : job.Source.FrameRate,
             Duration = job.Source.Duration,
-            VideoCodec = "av1",
+            VideoCodec = job.VideoCodec switch
+            {
+                VideoCodec.H264 => "h264",
+                VideoCodec.Av1 => "av1",
+                _ => throw new ArgumentOutOfRangeException(nameof(job), job.VideoCodec, "Unknown video codec."),
+            },
             AudioCodec = job.Format == OutputFormat.WebM ? "opus" : "aac",
             ContainerFormat = ContainerName(job.Format),
             FileSizeBytes = fileSizeBytes,

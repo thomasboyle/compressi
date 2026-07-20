@@ -44,7 +44,7 @@
 
                         <TextBlock Style="{StaticResource BodyTextStyle}" TextWrapping="WrapWholeWords">
 
-                            1. On Compress, drop a video or choose Browse Files.&#x0a;2. Pick a format and preset (8 MB Target is great for chat apps).&#x0a;3. Click Start Compression, then open the result when it finishes.
+                            1. On Compress, drop a video or choose Browse Files.&#x0a;2. Pick a format, codec, and preset (8MB is great for chat apps).&#x0a;3. Click Start Compression, then open the result when it finishes.
 
                         </TextBlock>
 

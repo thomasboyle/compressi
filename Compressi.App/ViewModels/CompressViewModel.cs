@@ -27,6 +27,7 @@ public sealed class CompressViewModel : INotifyPropertyChanged
     private string? _errorActionLabel;
     private CompressionPreset _preset;
     private OutputFormat? _outputFormat = Compressi.Core.Models.OutputFormat.Mp4;
+    private VideoCodec _videoCodec = VideoCodec.Av1;
     private double _progressPercent;
     private string _elapsedDisplay = "0:00";
     private string _remainingDisplay = "--:--";
@@ -135,7 +136,38 @@ public sealed class CompressViewModel : INotifyPropertyChanged
             }
 
             _outputFormat = value;
-            NotifyUiStateChanged(nameof(OutputFormat), nameof(CanStartCompression));
+            using (BatchPropertyChanged())
+            {
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(CanStartCompression));
+                if (_outputFormat == Compressi.Core.Models.OutputFormat.WebM && _videoCodec == VideoCodec.H264)
+                {
+                    VideoCodec = VideoCodec.Av1;
+                }
+            }
+        }
+    }
+
+    public VideoCodec VideoCodec
+    {
+        get => _videoCodec;
+        set
+        {
+            if (_videoCodec == value)
+            {
+                return;
+            }
+
+            _videoCodec = value;
+            using (BatchPropertyChanged())
+            {
+                OnPropertyChanged();
+                if (_videoCodec == VideoCodec.H264
+                    && _outputFormat == Compressi.Core.Models.OutputFormat.WebM)
+                {
+                    OutputFormat = Compressi.Core.Models.OutputFormat.Mp4;
+                }
+            }
         }
     }
 
@@ -144,7 +176,7 @@ public sealed class CompressViewModel : INotifyPropertyChanged
         CompressionPreset.Ultra =>
             "Smallest file size, video quality reduced. Best for archiving or slow connections.",
         CompressionPreset.EightMB =>
-            "Targets an 8 MB file while keeping audio and frame rate as high as possible. Great for Discord/chat sharing.",
+            "Targets an 8MB file while keeping audio and frame rate as high as possible. Great for Discord/chat sharing.",
         CompressionPreset.Balanced =>
             "Solid quality-to-size tradeoff for everyday sharing. Recommended.",
         _ => throw new ArgumentOutOfRangeException(nameof(Preset), Preset, "Unknown compression preset."),
@@ -603,6 +635,7 @@ public sealed class CompressViewModel : INotifyPropertyChanged
             ResetProgress();
             Preset = _settings.DefaultPreset;
             OutputFormat = Compressi.Core.Models.OutputFormat.Mp4;
+            VideoCodec = VideoCodec.Av1;
         }
     }
 
@@ -617,7 +650,9 @@ public sealed class CompressViewModel : INotifyPropertyChanged
     private CompressionJob BuildJob()
     {
         // Use in-memory settings; ReloadSettings() refreshes after Settings save / encoder warmup.
-        var useHardware = _settings.HardwareAcceleration && Preset != CompressionPreset.EightMB;
+        var useHardware = _settings.HardwareAcceleration
+            && Preset != CompressionPreset.EightMB
+            && VideoCodec == VideoCodec.Av1;
         // Prefer cached detection; fall back to catalog without forcing a blocking refresh on the UI path.
         var gpuEncoder = useHardware
             ? ResolveGpuEncoder(_settings.DetectedGpuEncoder)
@@ -629,12 +664,17 @@ public sealed class CompressViewModel : INotifyPropertyChanged
         {
             note = "Using CPU encoding for precise size targeting.";
         }
+        else if (_settings.HardwareAcceleration && VideoCodec == VideoCodec.H264)
+        {
+            note = "Using CPU encoding for H.264.";
+        }
 
         return new CompressionJob
         {
             Source = SourceFile!,
             Preset = Preset,
             Format = OutputFormat!.Value,
+            VideoCodec = VideoCodec,
             ThreadCount = ResolveEncodeThreadCount(_settings.EffectiveThreadCount, hardwareEnabled),
             HardwareAccelerationEnabled = hardwareEnabled,
             GpuEncoder = gpuEncoder,

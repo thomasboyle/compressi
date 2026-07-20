@@ -8,6 +8,8 @@ public sealed class CompressionJob
 
     public required OutputFormat Format { get; init; }
 
+    public VideoCodec VideoCodec { get; init; } = VideoCodec.Av1;
+
     public AdvancedEncodingOptions? Advanced { get; init; }
 
     public int ThreadCount { get; init; } = Environment.ProcessorCount;

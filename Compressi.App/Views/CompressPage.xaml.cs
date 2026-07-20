@@ -24,6 +24,7 @@ public sealed partial class CompressPage : Page, IAppPage
     private static readonly SolidColorBrush DropZoneHoverStroke = new(Color.FromArgb(0xFF, 0x2A, 0x32, 0x20));
 
     private bool _suppressFormatToggle;
+    private bool _suppressCodecToggle;
     private bool _suppressPresetSync;
     private bool _suppressKeepAudioSound;
     private bool _uiStateUpdateQueued;
@@ -43,6 +44,7 @@ public sealed partial class CompressPage : Page, IAppPage
         ViewModel.PropertyChanged += ViewModel_PropertyChanged;
         SyncAdvancedFieldsFromViewModel();
         SyncFormatFromViewModel();
+        SyncCodecFromViewModel();
         UpdateUiState();
     }
 
@@ -56,6 +58,8 @@ public sealed partial class CompressPage : Page, IAppPage
 
         _uiDirty = false;
         SyncPresetFromViewModel();
+        SyncFormatFromViewModel();
+        SyncCodecFromViewModel();
         UpdateUiState();
     }
 
@@ -244,6 +248,7 @@ public sealed partial class CompressPage : Page, IAppPage
         _suppressPresetSync = false;
 
         SyncFormatFromViewModel();
+        SyncCodecFromViewModel();
 
         UpdateStatusInfoBar();
         OutputFolderPathText.Text = $"Saving to: {ViewModel.OutputDirectoryDisplay}";
@@ -508,7 +513,17 @@ public sealed partial class CompressPage : Page, IAppPage
         Mp4FormatButton.IsChecked = ViewModel.OutputFormat == OutputFormat.Mp4;
         MkvFormatButton.IsChecked = ViewModel.OutputFormat == OutputFormat.Mkv;
         WebmFormatButton.IsChecked = ViewModel.OutputFormat == OutputFormat.WebM;
+        WebmFormatButton.IsEnabled = ViewModel.VideoCodec != VideoCodec.H264;
         _suppressFormatToggle = false;
+    }
+
+    private void SyncCodecFromViewModel()
+    {
+        _suppressCodecToggle = true;
+        Av1CodecButton.IsChecked = ViewModel.VideoCodec == VideoCodec.Av1;
+        H264CodecButton.IsChecked = ViewModel.VideoCodec == VideoCodec.H264;
+        H264CodecButton.IsEnabled = ViewModel.OutputFormat != OutputFormat.WebM;
+        _suppressCodecToggle = false;
     }
 
     private void FormatRadioButton_Checked(object sender, RoutedEventArgs e)
@@ -526,6 +541,26 @@ public sealed partial class CompressPage : Page, IAppPage
             "WebM" => OutputFormat.WebM,
             _ => throw new ArgumentOutOfRangeException(nameof(checkedButton), checkedButton.Tag, "Unknown output format."),
         };
+        SyncCodecFromViewModel();
+        SyncFormatFromViewModel();
+    }
+
+    private void CodecRadioButton_Checked(object sender, RoutedEventArgs e)
+    {
+        if (_suppressCodecToggle || sender is not RadioButton checkedButton)
+        {
+            return;
+        }
+
+        UiSoundService.Play(UiSoundName.Press);
+        ViewModel.VideoCodec = checkedButton.Tag?.ToString() switch
+        {
+            "Av1" => VideoCodec.Av1,
+            "H264" => VideoCodec.H264,
+            _ => throw new ArgumentOutOfRangeException(nameof(checkedButton), checkedButton.Tag, "Unknown video codec."),
+        };
+        SyncFormatFromViewModel();
+        SyncCodecFromViewModel();
     }
 
     private void PresetComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
