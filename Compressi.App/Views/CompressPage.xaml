@@ -439,17 +439,6 @@
         <controls:GlassPanel Grid.Column="1">
             <controls:GlassPanel.PanelContent>
                 <Grid>
-                    <Image
-                        Margin="0,0,-8,-8"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Bottom"
-                        Width="280"
-                        Height="220"
-                        IsHitTestVisible="False"
-                        Opacity="0.45"
-                        Source="ms-appx:///Assets/ui/deco-results-wash.png"
-                        Stretch="Uniform" />
-
                     <Grid x:Name="EmptyCompletePanel">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
