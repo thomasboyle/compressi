@@ -11,6 +11,7 @@ namespace Compressi_App;
 public sealed partial class MainWindow : Window
 {
     private readonly Dictionary<string, IAppPage> _pages = new(StringComparer.Ordinal);
+    private readonly AppUpdateService _updateService = new();
     private bool _suppressSelectionChanged;
     private string? _currentTag;
     private bool _initialPageShown;
@@ -37,6 +38,9 @@ public sealed partial class MainWindow : Window
 
         var wireStart = System.Diagnostics.Stopwatch.GetTimestamp();
         App.HistoryViewModel.RerunRequested += (_, entry) => RerunCompression(entry);
+        _updateService.StateChanged += (_, _) => DispatcherQueue.TryEnqueue(RefreshUpdateBubble);
+        Activated += MainWindow_Activated;
+        RefreshUpdateBubble();
 
         _suppressSelectionChanged = true;
         NavView.SelectedItem = NavView.MenuItems[0];
@@ -61,6 +65,7 @@ public sealed partial class MainWindow : Window
         PerfProbe.Mark("tti");
 
         DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, PrecreateRemainingPages);
+        DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () => _ = _updateService.CheckForUpdatesAsync());
     }
 
     public void NavigateToCompress()
@@ -81,6 +86,68 @@ public sealed partial class MainWindow : Window
     {
         // Cottagecore paper UI uses a solid cream surface; skip system acrylic/mica.
         SystemBackdrop = null;
+    }
+
+    private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
+    {
+        if (args.WindowActivationState != WindowActivationState.Deactivated)
+        {
+            _ = _updateService.CheckForUpdatesAsync();
+        }
+    }
+
+    private void RefreshUpdateBubble()
+    {
+        var status = _updateService.Status;
+        var update = _updateService.AvailableUpdate;
+        var show = update is not null
+            || status is AppUpdateStatus.Downloading or AppUpdateStatus.Installing;
+
+        UpdateBubble.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        if (!show)
+        {
+            return;
+        }
+
+        UpdateBubbleVersionText.Text = update is null ? string.Empty : $"v{update.Version}";
+        UpdateBubbleProgress.Visibility = status is AppUpdateStatus.Downloading or AppUpdateStatus.Installing
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        UpdateBubbleProgress.Value = _updateService.DownloadProgress;
+        UpdateBubbleDismissButton.IsEnabled = status is not AppUpdateStatus.Downloading and not AppUpdateStatus.Installing;
+        UpdateBubbleActionButton.IsEnabled = status is AppUpdateStatus.Available or AppUpdateStatus.Failed;
+        UpdateBubbleActionButton.Content = status switch
+        {
+            AppUpdateStatus.Downloading => $"Downloading {_updateService.DownloadProgress:0}%",
+            AppUpdateStatus.Installing => "Installing...",
+            AppUpdateStatus.Failed => "Retry install",
+            _ => "Install update",
+        };
+    }
+
+    private void UpdateBubbleDismissButton_Click(object sender, RoutedEventArgs e)
+    {
+        UiSoundService.Play(UiSoundName.Release);
+        _updateService.DismissAvailableUpdate();
+    }
+
+    private async void UpdateBubbleActionButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_updateService.Status is AppUpdateStatus.Downloading or AppUpdateStatus.Installing)
+        {
+            return;
+        }
+
+        UiSoundService.Play(UiSoundName.Press);
+        try
+        {
+            await _updateService.DownloadAndInstallAsync().ConfigureAwait(true);
+            Close();
+        }
+        catch
+        {
+            RefreshUpdateBubble();
+        }
     }
 
     private async void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)

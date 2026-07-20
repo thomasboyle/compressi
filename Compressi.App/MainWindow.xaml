@@ -111,6 +111,78 @@
                     </NavigationViewItem>
                 </NavigationView.MenuItems>
 
+                <NavigationView.PaneFooter>
+                    <Border
+                        x:Name="UpdateBubble"
+                        Margin="10,8,10,14"
+                        Padding="10,8"
+                        Background="{StaticResource InputSurfaceBrush}"
+                        BorderBrush="{StaticResource ResultCardBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Visibility="Collapsed">
+                        <Grid RowSpacing="6">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <Grid ColumnSpacing="6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        FontFamily="{StaticResource AppPixelFontBoldFamily}"
+                                        FontSize="12"
+                                        Foreground="{ThemeResource AppInkBrush}"
+                                        Text="Update available" />
+                                    <TextBlock
+                                        x:Name="UpdateBubbleVersionText"
+                                        FontFamily="{StaticResource AppPixelFontFamily}"
+                                        FontSize="11"
+                                        Foreground="{StaticResource ResultLabelBrush}"
+                                        Text="v0.0.0" />
+                                </StackPanel>
+                                <Button
+                                    x:Name="UpdateBubbleDismissButton"
+                                    Grid.Column="1"
+                                    Width="22"
+                                    Height="22"
+                                    Padding="0"
+                                    VerticalAlignment="Top"
+                                    AutomationProperties.Name="Dismiss update"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Click="UpdateBubbleDismissButton_Click"
+                                    Content="&#xE711;"
+                                    FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                    FontSize="10"
+                                    Foreground="{StaticResource ResultLabelBrush}" />
+                            </Grid>
+
+                            <ProgressBar
+                                x:Name="UpdateBubbleProgress"
+                                Grid.Row="1"
+                                Height="4"
+                                Foreground="{StaticResource PrimaryBlueBrush}"
+                                Maximum="100"
+                                Visibility="Collapsed"
+                                Value="0" />
+
+                            <Button
+                                x:Name="UpdateBubbleActionButton"
+                                Grid.Row="2"
+                                HorizontalAlignment="Stretch"
+                                Click="UpdateBubbleActionButton_Click"
+                                Content="Install update"
+                                Style="{StaticResource GlassPrimaryButtonStyle}" />
+                        </Grid>
+                    </Border>
+                </NavigationView.PaneFooter>
+
                 <ContentPresenter x:Name="ContentHost" />
             </NavigationView>
         </Border>
