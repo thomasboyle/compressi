@@ -215,43 +215,52 @@ public sealed class AppUpdateService
 
         try
         {
-            using var response = await _http.GetAsync(
+            // Dedicated client: API client has a 20s timeout and a GitHub JSON Accept header,
+            // both wrong for a ~180MB installer binary.
+            using var downloadClient = new HttpClient
+            {
+                Timeout = TimeSpan.FromMinutes(30),
+                DefaultRequestHeaders = { { "User-Agent", "Compressi-Updater" } },
+            };
+
+            using var response = await downloadClient.GetAsync(
                 update.DownloadUrl,
                 HttpCompletionOption.ResponseHeadersRead,
                 cancellationToken).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
             var total = response.Content.Headers.ContentLength;
-            await using var input = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-            await using var output = new FileStream(setupPath, FileMode.Create, FileAccess.Write, FileShare.None, 82_000, true);
-
-            var buffer = new byte[82_000];
-            long readTotal = 0;
-            int read;
-            while ((read = await input.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken).ConfigureAwait(false)) > 0)
+            await using (var input = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false))
+            await using (var output = new FileStream(setupPath, FileMode.Create, FileAccess.Write, FileShare.None, 82_000, true))
             {
-                await output.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
-                readTotal += read;
-                if (total is not > 0)
+                var buffer = new byte[82_000];
+                long readTotal = 0;
+                int read;
+                while ((read = await input.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken).ConfigureAwait(false)) > 0)
                 {
-                    continue;
-                }
+                    await output.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
+                    readTotal += read;
+                    if (total is not > 0)
+                    {
+                        continue;
+                    }
 
-                var pct = (int)Math.Clamp(100.0 * readTotal / total.Value, 0, 100);
-                bool raise;
-                lock (_gate)
-                {
-                    _downloadProgress = pct;
-                    raise = pct != _lastRaisedProgressPercent;
+                    var pct = (int)Math.Clamp(100.0 * readTotal / total.Value, 0, 100);
+                    bool raise;
+                    lock (_gate)
+                    {
+                        _downloadProgress = pct;
+                        raise = pct != _lastRaisedProgressPercent;
+                        if (raise)
+                        {
+                            _lastRaisedProgressPercent = pct;
+                        }
+                    }
+
                     if (raise)
                     {
-                        _lastRaisedProgressPercent = pct;
+                        RaiseStateChanged();
                     }
-                }
-
-                if (raise)
-                {
-                    RaiseStateChanged();
                 }
             }
 
