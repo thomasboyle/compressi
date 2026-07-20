@@ -65,7 +65,8 @@ public sealed partial class MainWindow : Window
         PerfProbe.Mark("tti");
 
         DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, PrecreateRemainingPages);
-        DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () => _ = _updateService.CheckForUpdatesAsync());
+        // Always revalidate on launch so a release published after the last session is noticed.
+        DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () => _ = _updateService.CheckForUpdatesAsync(force: true));
     }
 
     public void NavigateToCompress()

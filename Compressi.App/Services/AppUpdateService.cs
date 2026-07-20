@@ -26,7 +26,9 @@ public sealed class AppUpdateService
     private const string GitHubOwner = "thomasboyle";
     private const string GitHubRepo = "compressi";
     private const string SetupAssetName = "Compressi-Setup-x64.exe";
-    private static readonly TimeSpan MinRecheckInterval = TimeSpan.FromHours(4);
+    // Focus-driven rechecks only (no timer). Keep this short so a release published
+    // soon after the last check is still noticed; ETag makes repeats cheap.
+    private static readonly TimeSpan MinRecheckInterval = TimeSpan.FromMinutes(15);
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     private readonly HttpClient _http = new()
@@ -83,7 +85,7 @@ public sealed class AppUpdateService
             : new Version(version.Major, version.Minor, Math.Max(version.Build, 0));
     }
 
-    public async Task CheckForUpdatesAsync(CancellationToken cancellationToken = default)
+    public async Task CheckForUpdatesAsync(bool force = false, CancellationToken cancellationToken = default)
     {
         lock (_gate)
         {
@@ -92,7 +94,8 @@ public sealed class AppUpdateService
                 return;
             }
 
-            if (_cache.LastCheckedUtc is not null
+            if (!force
+                && _cache.LastCheckedUtc is not null
                 && DateTime.UtcNow - _cache.LastCheckedUtc.Value < MinRecheckInterval)
             {
                 return;
