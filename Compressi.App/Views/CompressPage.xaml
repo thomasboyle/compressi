@@ -18,7 +18,7 @@
             <controls:GlassPanel.PanelContent>
                 <ScrollViewer
                     x:Name="LeftScrollViewer"
-                    VerticalScrollBarVisibility="Auto"
+                    VerticalScrollBarVisibility="Hidden"
                     SizeChanged="LeftScrollViewer_SizeChanged">
                     <Grid x:Name="LeftContentRoot" RowSpacing="18">
                         <Grid.RowDefinitions>
@@ -115,18 +115,51 @@
                             </Grid>
 
                             <StackPanel Grid.Row="2" Spacing="8">
-                                <InfoBar
-                                    x:Name="StatusInfoBar"
-                                    IsClosable="True"
-                                    IsOpen="False"
-                                    CloseButtonClick="StatusInfoBar_CloseButtonClick">
-                                    <InfoBar.ActionButton>
+                                <Border
+                                    x:Name="StatusBanner"
+                                    Style="{StaticResource GlassInfoBannerStyle}"
+                                    Visibility="Collapsed">
+                                    <Grid ColumnSpacing="10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                                            <TextBlock
+                                                x:Name="StatusBannerTitle"
+                                                Style="{StaticResource BodyTextStyle}"
+                                                FontFamily="{StaticResource AppPixelFontBoldFamily}"
+                                                Visibility="Collapsed" />
+                                            <TextBlock
+                                                x:Name="StatusBannerMessage"
+                                                Style="{StaticResource BodyTextStyle}"
+                                                TextWrapping="WrapWholeWords" />
+                                        </StackPanel>
                                         <Button
-                                            x:Name="StatusInfoBarActionButton"
+                                            x:Name="StatusBannerActionButton"
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
                                             Click="StatusInfoBarActionButton_Click"
+                                            Style="{StaticResource GlassSecondaryButtonStyle}"
                                             Visibility="Collapsed" />
-                                    </InfoBar.ActionButton>
-                                </InfoBar>
+                                        <Button
+                                            x:Name="StatusBannerCloseButton"
+                                            Grid.Column="2"
+                                            Width="28"
+                                            Height="28"
+                                            Padding="0"
+                                            VerticalAlignment="Center"
+                                            AutomationProperties.Name="Dismiss status"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Click="StatusBannerCloseButton_Click"
+                                            Content="&#xE711;"
+                                            FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                            FontSize="12"
+                                            Foreground="{StaticResource ResultLabelBrush}" />
+                                    </Grid>
+                                </Border>
 
                                 <Border
                                     x:Name="FileChip"
@@ -265,22 +298,53 @@
                                 </ComboBox>
                             </StackPanel>
 
-                            <Expander
-                                x:Name="AdvancedExpander"
-                                Header="Advanced Options"
-                                IsExpanded="False"
-                                Expanding="AdvancedExpander_Expanding"
-                                Collapsed="AdvancedExpander_Collapsed"
-                                Style="{StaticResource GlassExpanderStyle}">
-                                <StackPanel Spacing="12" Padding="0,12,0,0">
-                                    <TextBox x:Name="ResolutionOverrideBox" Header="Resolution override" PlaceholderText="e.g. 1920x1080" />
-                                    <TextBox x:Name="FrameRateOverrideBox" Header="Frame rate override" PlaceholderText="e.g. 30" />
-                                    <TextBox x:Name="AudioBitrateOverrideBox" Header="Audio bitrate (kbps)" PlaceholderText="128" />
+                            <StackPanel Spacing="4">
+                                <ToggleButton
+                                    x:Name="AdvancedToggle"
+                                    Click="AdvancedToggle_Click"
+                                    Content="Advanced Options"
+                                    Style="{StaticResource GlassDisclosureToggleStyle}" />
+                                <StackPanel
+                                    x:Name="AdvancedOptionsPanel"
+                                    Padding="0,8,0,0"
+                                    Spacing="12"
+                                    Visibility="Collapsed">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Style="{StaticResource GlassFieldLabelStyle}" Text="Resolution override" />
+                                        <TextBox
+                                            x:Name="ResolutionOverrideBox"
+                                            PlaceholderText="e.g. 1920x1080"
+                                            Style="{StaticResource GlassTextBoxStyle}" />
+                                    </StackPanel>
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Style="{StaticResource GlassFieldLabelStyle}" Text="Frame rate override" />
+                                        <TextBox
+                                            x:Name="FrameRateOverrideBox"
+                                            PlaceholderText="e.g. 30"
+                                            Style="{StaticResource GlassTextBoxStyle}" />
+                                    </StackPanel>
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Style="{StaticResource GlassFieldLabelStyle}" Text="Audio bitrate (kbps)" />
+                                        <TextBox
+                                            x:Name="AudioBitrateOverrideBox"
+                                            PlaceholderText="128"
+                                            Style="{StaticResource GlassTextBoxStyle}" />
+                                    </StackPanel>
                                     <ToggleSwitch
                                         x:Name="KeepAudioToggle"
-                                        Header="Keep original audio track"
-                                        Toggled="KeepAudioToggle_Toggled" />
-                                    <TextBox x:Name="OutputPatternBox" Header="Output filename pattern" PlaceholderText="{}{name}_compressed" />
+                                        Style="{StaticResource GlassToggleSwitchStyle}"
+                                        Toggled="KeepAudioToggle_Toggled">
+                                        <ToggleSwitch.Header>
+                                            <TextBlock Style="{StaticResource BodyTextStyle}" Text="Keep original audio track" />
+                                        </ToggleSwitch.Header>
+                                    </ToggleSwitch>
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Style="{StaticResource GlassFieldLabelStyle}" Text="Output filename pattern" />
+                                        <TextBox
+                                            x:Name="OutputPatternBox"
+                                            PlaceholderText="{}{name}_compressed"
+                                            Style="{StaticResource GlassTextBoxStyle}" />
+                                    </StackPanel>
                                     <Button
                                         x:Name="ChooseOutputFolderButton"
                                         Click="ChooseOutputFolderButton_Click"
@@ -292,7 +356,7 @@
                                         Style="{StaticResource CaptionTextStyle}"
                                         TextWrapping="WrapWholeWords" />
                                 </StackPanel>
-                            </Expander>
+                            </StackPanel>
 
                             <StackPanel x:Name="EncodingProgressPanel" Spacing="8" Visibility="Collapsed">
                                 <ProgressBar

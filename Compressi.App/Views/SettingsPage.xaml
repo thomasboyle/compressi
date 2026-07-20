@@ -11,77 +11,125 @@
     <Grid Padding="24">
         <controls:GlassPanel>
             <controls:GlassPanel.PanelContent>
-                <ScrollViewer>
+                <ScrollViewer VerticalScrollBarVisibility="Hidden">
                     <StackPanel
                         HorizontalAlignment="Center"
                         Spacing="20"
                         MaxWidth="640">
                         <TextBlock Style="{StaticResource TitleTextStyle}" Text="Settings" />
 
-                        <InfoBar
-                            x:Name="SettingsInfoBar"
-                            IsClosable="True"
-                            IsOpen="False" />
+                        <Border
+                            x:Name="SettingsBanner"
+                            Style="{StaticResource GlassInfoBannerStyle}"
+                            Visibility="Collapsed">
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                                    <TextBlock
+                                        x:Name="SettingsBannerTitle"
+                                        Style="{StaticResource BodyTextStyle}"
+                                        FontFamily="{StaticResource AppPixelFontBoldFamily}"
+                                        Visibility="Collapsed" />
+                                    <TextBlock
+                                        x:Name="SettingsBannerMessage"
+                                        Style="{StaticResource BodyTextStyle}"
+                                        TextWrapping="WrapWholeWords" />
+                                </StackPanel>
+                                <Button
+                                    Grid.Column="1"
+                                    Width="28"
+                                    Height="28"
+                                    Padding="0"
+                                    VerticalAlignment="Center"
+                                    AutomationProperties.Name="Dismiss status"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Click="SettingsBannerCloseButton_Click"
+                                    Content="&#xE711;"
+                                    FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                    FontSize="12"
+                                    Foreground="{StaticResource ResultLabelBrush}" />
+                            </Grid>
+                        </Border>
 
-                        <TextBox
-                            x:Name="OutputFolderBox"
-                            Header="Default output folder"
-                            PlaceholderText="Leave empty to use source file folder"
-                            TextChanged="OutputFolderBox_TextChanged" />
+                        <StackPanel Spacing="4">
+                            <TextBlock Style="{StaticResource GlassFieldLabelStyle}" Text="Default output folder" />
+                            <TextBox
+                                x:Name="OutputFolderBox"
+                                PlaceholderText="Leave empty to use source file folder"
+                                Style="{StaticResource GlassTextBoxStyle}"
+                                TextChanged="OutputFolderBox_TextChanged" />
+                        </StackPanel>
 
-                        <ComboBox
-                            x:Name="DefaultPresetBox"
-                            Header="Default preset"
-                            HorizontalAlignment="Stretch"
-                            SelectionChanged="DefaultPresetBox_SelectionChanged">
-                            <ComboBoxItem
-                                Content="Ultra"
-                                Tag="Ultra"
-                                ToolTipService.ToolTip="Smallest file size with reduced video quality. Best for archiving or slow connections." />
-                            <ComboBoxItem
-                                Content="8MB"
-                                Tag="EightMB"
-                                ToolTipService.ToolTip="Targets an 8MB file while keeping audio and frame rate as high as possible. Great for Discord and chat sharing." />
-                            <ComboBoxItem
-                                Content="Balanced"
-                                Tag="Balanced"
-                                ToolTipService.ToolTip="Solid quality-to-size tradeoff for everyday sharing." />
-                        </ComboBox>
+                        <StackPanel Spacing="4">
+                            <TextBlock Style="{StaticResource GlassFieldLabelStyle}" Text="Default preset" />
+                            <ComboBox
+                                x:Name="DefaultPresetBox"
+                                SelectionChanged="DefaultPresetBox_SelectionChanged"
+                                Style="{StaticResource GlassInputComboBoxStyle}">
+                                <ComboBoxItem
+                                    Content="Ultra"
+                                    Tag="Ultra"
+                                    ToolTipService.ToolTip="Smallest file size with reduced video quality. Best for archiving or slow connections." />
+                                <ComboBoxItem
+                                    Content="8MB"
+                                    Tag="EightMB"
+                                    ToolTipService.ToolTip="Targets an 8MB file while keeping audio and frame rate as high as possible. Great for Discord and chat sharing." />
+                                <ComboBoxItem
+                                    Content="Balanced"
+                                    Tag="Balanced"
+                                    ToolTipService.ToolTip="Solid quality-to-size tradeoff for everyday sharing." />
+                            </ComboBox>
+                        </StackPanel>
 
                         <ToggleSwitch
                             x:Name="HardwareToggle"
-                            Header="Hardware acceleration (GPU AV1 when available)"
-                            Toggled="HardwareToggle_Toggled" />
+                            Style="{StaticResource GlassToggleSwitchStyle}"
+                            Toggled="HardwareToggle_Toggled">
+                            <ToggleSwitch.Header>
+                                <TextBlock Style="{StaticResource BodyTextStyle}" Text="Hardware acceleration (GPU AV1 when available)" />
+                            </ToggleSwitch.Header>
+                        </ToggleSwitch>
 
                         <StackPanel Spacing="8">
-                            <TextBlock Style="{StaticResource BodyTextStyle}" Text="CPU thread usage" />
+                            <TextBlock Style="{StaticResource GlassFieldLabelStyle}" Text="CPU thread usage" />
                             <Slider
                                 x:Name="ThreadSlider"
                                 Maximum="64"
                                 Minimum="0"
                                 StepFrequency="1"
+                                Style="{StaticResource GlassSliderStyle}"
                                 ValueChanged="ThreadSlider_ValueChanged" />
                             <TextBlock x:Name="ThreadCountLabel" Style="{StaticResource CaptionTextStyle}" />
                         </StackPanel>
 
-                        <ComboBox
-                            x:Name="ThemeBox"
-                            Header="Theme"
-                            HorizontalAlignment="Stretch"
-                            SelectionChanged="ThemeBox_SelectionChanged">
-                            <ComboBoxItem Content="System" Tag="System" />
-                            <ComboBoxItem Content="Light" Tag="Light" />
-                            <ComboBoxItem Content="Dark" Tag="Dark" />
-                        </ComboBox>
+                        <StackPanel Spacing="4">
+                            <TextBlock Style="{StaticResource GlassFieldLabelStyle}" Text="Theme" />
+                            <ComboBox
+                                x:Name="ThemeBox"
+                                SelectionChanged="ThemeBox_SelectionChanged"
+                                Style="{StaticResource GlassInputComboBoxStyle}">
+                                <ComboBoxItem Content="System" Tag="System" />
+                                <ComboBoxItem Content="Light" Tag="Light" />
+                                <ComboBoxItem Content="Dark" Tag="Dark" />
+                            </ComboBox>
+                        </StackPanel>
 
                         <StackPanel Spacing="4">
                             <ToggleSwitch
                                 x:Name="NotifyToggle"
-                                Header="Notification on completion"
-                                Toggled="NotifyToggle_Toggled" />
+                                Style="{StaticResource GlassToggleSwitchStyle}"
+                                Toggled="NotifyToggle_Toggled">
+                                <ToggleSwitch.Header>
+                                    <TextBlock Style="{StaticResource BodyTextStyle}" Text="Notification on completion" />
+                                </ToggleSwitch.Header>
+                            </ToggleSwitch>
                             <TextBlock
                                 x:Name="NotifyUnavailableText"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Foreground="{StaticResource ResultLabelBrush}"
                                 Style="{StaticResource CaptionTextStyle}"
                                 Text="Desktop notifications are unavailable in this install."
                                 TextWrapping="WrapWholeWords"
@@ -90,16 +138,21 @@
 
                         <ToggleSwitch
                             x:Name="UiSoundsToggle"
-                            Header="UI interaction sounds"
-                            Toggled="UiSoundsToggle_Toggled" />
+                            Style="{StaticResource GlassToggleSwitchStyle}"
+                            Toggled="UiSoundsToggle_Toggled">
+                            <ToggleSwitch.Header>
+                                <TextBlock Style="{StaticResource BodyTextStyle}" Text="UI interaction sounds" />
+                            </ToggleSwitch.Header>
+                        </ToggleSwitch>
 
                         <StackPanel Spacing="8">
-                            <TextBlock Style="{StaticResource BodyTextStyle}" Text="UI sound volume" />
+                            <TextBlock Style="{StaticResource GlassFieldLabelStyle}" Text="UI sound volume" />
                             <Slider
                                 x:Name="UiSoundVolumeSlider"
                                 Maximum="100"
                                 Minimum="0"
                                 StepFrequency="1"
+                                Style="{StaticResource GlassSliderStyle}"
                                 ValueChanged="UiSoundVolumeSlider_ValueChanged" />
                             <TextBlock x:Name="UiSoundVolumeLabel" Style="{StaticResource CaptionTextStyle}" />
                         </StackPanel>

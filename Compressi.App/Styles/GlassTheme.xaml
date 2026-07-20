@@ -126,6 +126,124 @@
         <Setter Property="Foreground" Value="{ThemeResource AppInkBrush}" />
     </Style>
 
+    <Style x:Key="GlassTextBoxStyle" TargetType="TextBox">
+        <Setter Property="FontFamily" Value="{StaticResource AppPixelFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
+        <Setter Property="Background" Value="{StaticResource InputSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ResultCardBorderBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource AppInkBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="MinHeight" Value="31" />
+        <Setter Property="Padding" Value="10,5" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+    </Style>
+
+    <Style x:Key="GlassToggleSwitchStyle" TargetType="ToggleSwitch">
+        <Setter Property="FontFamily" Value="{StaticResource AppPixelFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
+        <Setter Property="Foreground" Value="{ThemeResource AppInkBrush}" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+    </Style>
+
+    <Style x:Key="GlassSliderStyle" TargetType="Slider">
+        <Setter Property="FontFamily" Value="{StaticResource AppPixelFontFamily}" />
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBlueBrush}" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+    </Style>
+
+    <Style x:Key="GlassDisclosureToggleStyle" TargetType="ToggleButton">
+        <Setter Property="FontFamily" Value="{StaticResource AppPixelFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
+        <Setter Property="Background" Value="{StaticResource InputSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ResultCardBorderBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource AppInkBrush}" />
+        <Setter Property="MinHeight" Value="31" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Padding" Value="10,3" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border
+                        x:Name="RootBorder"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        Padding="{TemplateBinding Padding}">
+                        <Grid ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter
+                                x:Name="ContentPresenter"
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Content="{TemplateBinding Content}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                FontFamily="{TemplateBinding FontFamily}"
+                                FontSize="{TemplateBinding FontSize}"
+                                Foreground="{TemplateBinding Foreground}" />
+                            <FontIcon
+                                x:Name="Chevron"
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                Foreground="{TemplateBinding Foreground}"
+                                Glyph="&#xE70D;" />
+                        </Grid>
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="PointerOver">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder" Storyboard.TargetProperty="BorderBrush">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource DropZoneStrokeBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Pressed" />
+                                <VisualState x:Name="Disabled">
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="RootBorder"
+                                            Storyboard.TargetProperty="Opacity"
+                                            To="0.45"
+                                            Duration="0" />
+                                    </Storyboard>
+                                </VisualState>
+                            </VisualStateGroup>
+                            <VisualStateGroup x:Name="CheckStates">
+                                <VisualState x:Name="Unchecked" />
+                                <VisualState x:Name="Checked">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Chevron" Storyboard.TargetProperty="Glyph">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="&#xE70E;" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Indeterminate" />
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="GlassInfoBannerStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource InputSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ResultCardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Padding" Value="10,8" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+    </Style>
+
     <Style x:Key="GlassFieldLabelStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource AppPixelFontBoldFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
@@ -192,31 +310,6 @@
                         </VisualStateManager.VisualStateGroups>
                     </Border>
                 </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <Style x:Key="GlassExpanderStyle" TargetType="Expander">
-        <Setter Property="FontFamily" Value="{StaticResource AppPixelFontFamily}" />
-        <Setter Property="Background" Value="{StaticResource InputSurfaceBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource ResultCardBorderBrush}" />
-        <Setter Property="MinHeight" Value="31" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="Padding" Value="10,3" />
-        <Setter Property="HorizontalAlignment" Value="Stretch" />
-        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-        <Setter Property="Foreground" Value="{ThemeResource AppInkBrush}" />
-        <Setter Property="HeaderTemplate">
-            <Setter.Value>
-                <DataTemplate>
-                    <TextBlock
-                        VerticalAlignment="Center"
-                        FontFamily="{StaticResource AppPixelFontFamily}"
-                        FontSize="{StaticResource FontSizeBody}"
-                        Foreground="{ThemeResource AppInkBrush}"
-                        Text="{Binding}" />
-                </DataTemplate>
             </Setter.Value>
         </Setter>
     </Style>

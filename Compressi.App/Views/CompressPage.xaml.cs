@@ -18,6 +18,9 @@ namespace Compressi_App.Views;
 
 public sealed partial class CompressPage : Page, IAppPage
 {
+    private static readonly SolidColorBrush StatusBannerDefaultBorder = new(Color.FromArgb(0xFF, 0x6B, 0x74, 0x4F));
+    private static readonly SolidColorBrush StatusBannerErrorBorder = new(Color.FromArgb(0xFF, 0x9B, 0x3B, 0x3B));
+
     private static readonly SolidColorBrush DropZoneDefaultFill = new(Color.FromArgb(0x14, 0xA7, 0xB1, 0x8F));
     private static readonly SolidColorBrush DropZoneHoverFill = new(Color.FromArgb(0x28, 0xA7, 0xB1, 0x8F));
     private static readonly SolidColorBrush DropZoneDefaultStroke = new(Color.FromArgb(0xFF, 0x4F, 0x58, 0x38));
@@ -399,12 +402,13 @@ public sealed partial class CompressPage : Page, IAppPage
     {
         if (ViewModel.HasError)
         {
-            StatusInfoBar.Severity = InfoBarSeverity.Error;
-            StatusInfoBar.Title = "Something went wrong";
-            StatusInfoBar.Message = ViewModel.ErrorMessage ?? string.Empty;
-            StatusInfoBar.IsOpen = true;
-            StatusInfoBarActionButton.Content = ViewModel.ErrorActionLabel ?? string.Empty;
-            StatusInfoBarActionButton.Visibility = ViewModel.HasErrorAction
+            StatusBanner.Visibility = Visibility.Visible;
+            StatusBanner.BorderBrush = StatusBannerErrorBorder;
+            StatusBannerTitle.Text = "Something went wrong";
+            StatusBannerTitle.Visibility = Visibility.Visible;
+            StatusBannerMessage.Text = ViewModel.ErrorMessage ?? string.Empty;
+            StatusBannerActionButton.Content = ViewModel.ErrorActionLabel ?? string.Empty;
+            StatusBannerActionButton.Visibility = ViewModel.HasErrorAction
                 ? Visibility.Visible
                 : Visibility.Collapsed;
             return;
@@ -412,19 +416,20 @@ public sealed partial class CompressPage : Page, IAppPage
 
         if (ViewModel.HasInfo)
         {
-            StatusInfoBar.Severity = InfoBarSeverity.Informational;
-            StatusInfoBar.Title = string.Empty;
-            StatusInfoBar.Message = ViewModel.InfoMessage ?? string.Empty;
-            StatusInfoBar.IsOpen = true;
-            StatusInfoBarActionButton.Visibility = Visibility.Collapsed;
+            StatusBanner.Visibility = Visibility.Visible;
+            StatusBanner.BorderBrush = StatusBannerDefaultBorder;
+            StatusBannerTitle.Text = string.Empty;
+            StatusBannerTitle.Visibility = Visibility.Collapsed;
+            StatusBannerMessage.Text = ViewModel.InfoMessage ?? string.Empty;
+            StatusBannerActionButton.Visibility = Visibility.Collapsed;
             return;
         }
 
-        StatusInfoBar.IsOpen = false;
-        StatusInfoBarActionButton.Visibility = Visibility.Collapsed;
+        StatusBanner.Visibility = Visibility.Collapsed;
+        StatusBannerActionButton.Visibility = Visibility.Collapsed;
     }
 
-    private void StatusInfoBar_CloseButtonClick(InfoBar sender, object args)
+    private void StatusBannerCloseButton_Click(object sender, RoutedEventArgs e)
     {
         ViewModel.ClearStatusMessages();
     }
@@ -580,11 +585,12 @@ public sealed partial class CompressPage : Page, IAppPage
         };
     }
 
-    private void AdvancedExpander_Expanding(Expander sender, ExpanderExpandingEventArgs args) =>
-        UiSoundService.Play(UiSoundName.Bloom);
-
-    private void AdvancedExpander_Collapsed(Expander sender, ExpanderCollapsedEventArgs args) =>
-        UiSoundService.Play(UiSoundName.Droplet);
+    private void AdvancedToggle_Click(object sender, RoutedEventArgs e)
+    {
+        var isOpen = AdvancedToggle.IsChecked == true;
+        AdvancedOptionsPanel.Visibility = isOpen ? Visibility.Visible : Visibility.Collapsed;
+        UiSoundService.Play(isOpen ? UiSoundName.Bloom : UiSoundName.Droplet);
+    }
 
     private void KeepAudioToggle_Toggled(object sender, RoutedEventArgs e)
     {

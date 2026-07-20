@@ -3,11 +3,17 @@ using Compressi_App.Services;
 using Compressi_App.Services.UiSounds;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
+using Windows.UI;
 
 namespace Compressi_App.Views;
 
 public sealed partial class SettingsPage : Page, IAppPage
 {
+    private static readonly SolidColorBrush BannerDefaultBorder = new(Color.FromArgb(0xFF, 0x6B, 0x74, 0x4F));
+    private static readonly SolidColorBrush BannerErrorBorder = new(Color.FromArgb(0xFF, 0x9B, 0x3B, 0x3B));
+    private static readonly SolidColorBrush BannerWarningBorder = new(Color.FromArgb(0xFF, 0xB0, 0x7A, 0x45));
+
     private bool _isActive;
     private bool _formLoaded;
     private bool _suppressToggleSound;
@@ -276,20 +282,33 @@ public sealed partial class SettingsPage : Page, IAppPage
         UiSoundService.VolumePercent = App.SettingsViewModel.UiSoundVolume;
         ThemeService.ApplyTheme(App.SettingsViewModel.Theme);
         LoadFromViewModel();
-        SettingsInfoBar.IsOpen = false;
+        SettingsBanner.Visibility = Visibility.Collapsed;
+    }
+
+    private void SettingsBannerCloseButton_Click(object sender, RoutedEventArgs e)
+    {
+        SettingsBanner.Visibility = Visibility.Collapsed;
     }
 
     private void ShowInfo(string message, InfoBarSeverity severity)
     {
-        SettingsInfoBar.Severity = severity;
-        SettingsInfoBar.Title = severity switch
+        SettingsBanner.Visibility = Visibility.Visible;
+        SettingsBanner.BorderBrush = severity switch
+        {
+            InfoBarSeverity.Error => BannerErrorBorder,
+            InfoBarSeverity.Warning => BannerWarningBorder,
+            _ => BannerDefaultBorder,
+        };
+        SettingsBannerTitle.Text = severity switch
         {
             InfoBarSeverity.Success => "Saved",
             InfoBarSeverity.Error => "Couldn't save",
             InfoBarSeverity.Warning => "Settings reset",
             _ => string.Empty,
         };
-        SettingsInfoBar.Message = message;
-        SettingsInfoBar.IsOpen = true;
+        SettingsBannerTitle.Visibility = string.IsNullOrEmpty(SettingsBannerTitle.Text)
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+        SettingsBannerMessage.Text = message;
     }
 }
