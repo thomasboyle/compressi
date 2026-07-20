@@ -26,7 +26,7 @@
 
                 <ScrollViewer>
 
-                    <StackPanel Spacing="12" MaxWidth="640">
+                    <StackPanel HorizontalAlignment="Center" Spacing="12" MaxWidth="640">
 
                         <TextBlock Style="{StaticResource TitleTextStyle}" Text="About Compressi" />
 

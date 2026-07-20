@@ -111,6 +111,37 @@
                     </NavigationViewItem>
                 </NavigationView.MenuItems>
 
+                <NavigationView.PaneFooter>
+                    <StackPanel
+                        Margin="16,8,16,18"
+                        HorizontalAlignment="Center"
+                        Spacing="6">
+                        <Image
+                            Width="96"
+                            Height="128"
+                            HorizontalAlignment="Center"
+                            Source="ms-appx:///Assets/ui/smoothie.png"
+                            Stretch="Uniform" />
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontFamily="{StaticResource AppPixelFontFamily}"
+                            FontSize="11"
+                            Foreground="{ThemeResource AppInkBrush}"
+                            Opacity="0.78"
+                            Text="Smooth results,"
+                            TextAlignment="Center" />
+                        <TextBlock
+                            Margin="0,-4,0,0"
+                            HorizontalAlignment="Center"
+                            FontFamily="{StaticResource AppPixelFontFamily}"
+                            FontSize="11"
+                            Foreground="{ThemeResource AppInkBrush}"
+                            Opacity="0.78"
+                            Text="every time."
+                            TextAlignment="Center" />
+                    </StackPanel>
+                </NavigationView.PaneFooter>
+
                 <ContentPresenter x:Name="ContentHost" />
             </NavigationView>
         </Border>

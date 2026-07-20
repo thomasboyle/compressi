@@ -64,6 +64,23 @@ public sealed partial class CompressPage : Page, IAppPage
         _isActive = false;
     }
 
+    private void LeftScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        // Fill the viewport when the window grows; allow scroll when advanced options overflow.
+        if (e.NewSize.Height > 0)
+        {
+            LeftContentRoot.MinHeight = e.NewSize.Height;
+        }
+    }
+
+    private void ResultPanel_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (ResultContentRoot is not null && e.NewSize.Height > 0)
+        {
+            ResultContentRoot.MinHeight = e.NewSize.Height;
+        }
+    }
+
     private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         PlayOutcomeSound(e.PropertyName);

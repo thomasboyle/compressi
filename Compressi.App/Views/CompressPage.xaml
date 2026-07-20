@@ -16,12 +16,29 @@
 
         <controls:GlassPanel Grid.Column="0">
             <controls:GlassPanel.PanelContent>
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Spacing="18">
-                        <StackPanel Spacing="8">
-                            <TextBlock Style="{StaticResource SubtitleTextStyle}" Text="1. Add Video" />
+                <ScrollViewer
+                    x:Name="LeftScrollViewer"
+                    VerticalScrollBarVisibility="Auto"
+                    SizeChanged="LeftScrollViewer_SizeChanged">
+                    <Grid x:Name="LeftContentRoot" RowSpacing="18">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" MinHeight="220" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
 
-                            <Grid x:Name="DropZone" MinHeight="194">
+                        <Grid Grid.Row="0" RowSpacing="8">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock
+                                Grid.Row="0"
+                                Style="{StaticResource SubtitleTextStyle}"
+                                Text="1. Add Video" />
+
+                            <Grid x:Name="DropZone" Grid.Row="1" MinHeight="194">
                                 <Rectangle
                                     x:Name="DropZoneOutline"
                                     RadiusX="10"
@@ -97,65 +114,67 @@
                                     Stretch="Uniform" />
                             </Grid>
 
-                            <InfoBar
-                                x:Name="StatusInfoBar"
-                                IsClosable="True"
-                                IsOpen="False"
-                                CloseButtonClick="StatusInfoBar_CloseButtonClick">
-                                <InfoBar.ActionButton>
-                                    <Button
-                                        x:Name="StatusInfoBarActionButton"
-                                        Click="StatusInfoBarActionButton_Click"
-                                        Visibility="Collapsed" />
-                                </InfoBar.ActionButton>
-                            </InfoBar>
+                            <StackPanel Grid.Row="2" Spacing="8">
+                                <InfoBar
+                                    x:Name="StatusInfoBar"
+                                    IsClosable="True"
+                                    IsOpen="False"
+                                    CloseButtonClick="StatusInfoBar_CloseButtonClick">
+                                    <InfoBar.ActionButton>
+                                        <Button
+                                            x:Name="StatusInfoBarActionButton"
+                                            Click="StatusInfoBarActionButton_Click"
+                                            Visibility="Collapsed" />
+                                    </InfoBar.ActionButton>
+                                </InfoBar>
 
-                            <Border
-                                x:Name="FileChip"
-                                Padding="12"
-                                Background="{StaticResource ResultSurfaceBrush}"
-                                BorderBrush="{StaticResource ResultCardBorderBrush}"
-                                BorderThickness="1"
-                                CornerRadius="12"
-                                Visibility="Collapsed">
-                                <Grid ColumnSpacing="12">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <Image
-                                        Grid.Column="0"
-                                        Width="32"
-                                        Height="32"
-                                        Source="ms-appx:///Assets/ui/icon-camera-add.png"
-                                        Stretch="Uniform" />
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                        <TextBlock x:Name="FileNameText" Style="{StaticResource BodyTextStyle}" />
-                                        <TextBlock
-                                            x:Name="FileMetadataText"
+                                <Border
+                                    x:Name="FileChip"
+                                    Padding="12"
+                                    Background="{StaticResource ResultSurfaceBrush}"
+                                    BorderBrush="{StaticResource ResultCardBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="12"
+                                    Visibility="Collapsed">
+                                    <Grid ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Image
+                                            Grid.Column="0"
+                                            Width="32"
+                                            Height="32"
+                                            Source="ms-appx:///Assets/ui/icon-camera-add.png"
+                                            Stretch="Uniform" />
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                            <TextBlock x:Name="FileNameText" Style="{StaticResource BodyTextStyle}" />
+                                            <TextBlock
+                                                x:Name="FileMetadataText"
+                                                Foreground="{StaticResource ResultLabelBrush}"
+                                                Style="{StaticResource CaptionTextStyle}" />
+                                        </StackPanel>
+                                        <Button
+                                            x:Name="RemoveFileButton"
+                                            Grid.Column="2"
+                                            Width="32"
+                                            Height="32"
+                                            Padding="0"
+                                            AutomationProperties.Name="Remove selected file"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Click="RemoveFileButton_Click"
+                                            Content="&#xE711;"
+                                            FontFamily="{ThemeResource SymbolThemeFontFamily}"
                                             Foreground="{StaticResource ResultLabelBrush}"
-                                            Style="{StaticResource CaptionTextStyle}" />
-                                    </StackPanel>
-                                    <Button
-                                        x:Name="RemoveFileButton"
-                                        Grid.Column="2"
-                                        Width="32"
-                                        Height="32"
-                                        Padding="0"
-                                        AutomationProperties.Name="Remove selected file"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Click="RemoveFileButton_Click"
-                                        Content="&#xE711;"
-                                        FontFamily="{ThemeResource SymbolThemeFontFamily}"
-                                        Foreground="{StaticResource ResultLabelBrush}"
-                                        ToolTipService.ToolTip="Remove selected file" />
-                                </Grid>
-                            </Border>
-                        </StackPanel>
+                                            ToolTipService.ToolTip="Remove selected file" />
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
 
-                        <StackPanel Spacing="8">
+                        <StackPanel Grid.Row="1" Spacing="8">
                             <TextBlock Style="{StaticResource SubtitleTextStyle}" Text="2. Output Settings" />
 
                             <StackPanel Spacing="4">
@@ -325,7 +344,7 @@
                                 </StackPanel>
                             </Button>
                         </StackPanel>
-                    </StackPanel>
+                    </Grid>
                 </ScrollViewer>
             </controls:GlassPanel.PanelContent>
         </controls:GlassPanel>
@@ -333,78 +352,111 @@
         <controls:GlassPanel Grid.Column="1">
             <controls:GlassPanel.PanelContent>
                 <Grid>
-                    <ScrollViewer x:Name="EmptyCompletePanel" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16">
-                            <TextBlock Style="{StaticResource SubtitleTextStyle}" Text="3. Results" />
+                    <Image
+                        Margin="0,0,-8,-8"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Width="280"
+                        Height="220"
+                        IsHitTestVisible="False"
+                        Opacity="0.45"
+                        Source="ms-appx:///Assets/ui/deco-results-wash.png"
+                        Stretch="Uniform" />
 
-                            <Grid>
-                                <StackPanel HorizontalAlignment="Center" Spacing="16">
-                                    <Image
-                                        Width="128"
-                                        Height="112"
-                                        HorizontalAlignment="Center"
-                                        Source="ms-appx:///Assets/ui/results-empty.png"
-                                        Stretch="Uniform" />
+                    <Grid x:Name="EmptyCompletePanel">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
 
-                                    <StackPanel HorizontalAlignment="Center" Spacing="6" MaxWidth="360">
-                                        <TextBlock
-                                            HorizontalAlignment="Center"
-                                            FontSize="16"
-                                            FontWeight="{StaticResource FontWeightSemiBold}"
-                                            FontFamily="{StaticResource AppPixelFontBoldFamily}"
-                                            Foreground="{ThemeResource AppInkBrush}"
-                                            Text="Your results will appear here"
-                                            TextAlignment="Center" />
-                                        <TextBlock
-                                            HorizontalAlignment="Center"
-                                            Foreground="{StaticResource ResultLabelBrush}"
-                                            Style="{StaticResource BodyTextStyle}"
-                                            Text="Add a video and start compression to see preview, file details and compression stats."
-                                            TextAlignment="Center"
-                                            TextWrapping="WrapWholeWords" />
-                                    </StackPanel>
+                        <TextBlock
+                            Grid.Row="0"
+                            Style="{StaticResource SubtitleTextStyle}"
+                            Text="3. Results" />
+
+                        <StackPanel
+                            Grid.Row="1"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Spacing="16">
+                            <Image
+                                Width="128"
+                                Height="112"
+                                HorizontalAlignment="Center"
+                                Source="ms-appx:///Assets/ui/results-empty.png"
+                                Stretch="Uniform" />
+
+                            <StackPanel HorizontalAlignment="Center" Spacing="6" MaxWidth="360">
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    FontSize="16"
+                                    FontWeight="{StaticResource FontWeightSemiBold}"
+                                    FontFamily="{StaticResource AppPixelFontBoldFamily}"
+                                    Foreground="{ThemeResource AppInkBrush}"
+                                    Text="Your results will appear here"
+                                    TextAlignment="Center" />
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    Foreground="{StaticResource ResultLabelBrush}"
+                                    Style="{StaticResource BodyTextStyle}"
+                                    Text="Add a video and start compression to see preview, file details and compression stats."
+                                    TextAlignment="Center"
+                                    TextWrapping="WrapWholeWords" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Border
+                            Grid.Row="2"
+                            Padding="12,10"
+                            Background="{StaticResource SecurityBannerFillBrush}"
+                            BorderBrush="{StaticResource SecurityBannerBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4">
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Image
+                                    Grid.Column="0"
+                                    Width="26"
+                                    Height="26"
+                                    VerticalAlignment="Center"
+                                    Source="ms-appx:///Assets/ui/icon-shield.png"
+                                    Stretch="Uniform" />
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                    <TextBlock
+                                        FontWeight="{StaticResource FontWeightSemiBold}"
+                                        Style="{StaticResource BodyTextStyle}"
+                                        Text="Private &amp; Secure" />
+                                    <TextBlock
+                                        Foreground="{StaticResource ResultLabelBrush}"
+                                        Style="{StaticResource CaptionTextStyle}"
+                                        Text="Your files never leave your device. Everything is processed locally."
+                                        TextWrapping="WrapWholeWords" />
                                 </StackPanel>
                             </Grid>
-
-                            <Border
-                                Padding="12,10"
-                                Background="{StaticResource SecurityBannerFillBrush}"
-                                BorderBrush="{StaticResource SecurityBannerBorderBrush}"
-                                BorderThickness="1"
-                                CornerRadius="4">
-                                <Grid ColumnSpacing="12">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <Image
-                                        Grid.Column="0"
-                                        Width="26"
-                                        Height="26"
-                                        VerticalAlignment="Center"
-                                        Source="ms-appx:///Assets/ui/icon-shield.png"
-                                        Stretch="Uniform" />
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                        <TextBlock
-                                            FontWeight="{StaticResource FontWeightSemiBold}"
-                                            Style="{StaticResource BodyTextStyle}"
-                                            Text="Private &amp; Secure" />
-                                        <TextBlock
-                                            Foreground="{StaticResource ResultLabelBrush}"
-                                            Style="{StaticResource CaptionTextStyle}"
-                                            Text="Your files never leave your device. Everything is processed locally."
-                                            TextWrapping="WrapWholeWords" />
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
-
-                        </StackPanel>
-                    </ScrollViewer>
+                        </Border>
+                    </Grid>
 
                     <!-- Deferred: large completion UI is unused until the first successful encode. -->
-                    <ScrollViewer x:Name="ResultPanel" x:Load="False" Visibility="Collapsed">
-                        <StackPanel Spacing="16">
-                            <Grid>
+                    <ScrollViewer
+                        x:Name="ResultPanel"
+                        x:Load="False"
+                        Visibility="Collapsed"
+                        VerticalScrollBarVisibility="Auto"
+                        SizeChanged="ResultPanel_SizeChanged">
+                        <Grid x:Name="ResultContentRoot" RowSpacing="16">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" MinHeight="220" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <Grid Grid.Row="0">
                                 <TextBlock Style="{StaticResource SubtitleTextStyle}" Text="3. Compression Complete" />
                                 <StackPanel
                                     HorizontalAlignment="Right"
@@ -424,11 +476,13 @@
 
                             <Border
                                 x:Name="PreviewHost"
+                                Grid.Row="1"
                                 Background="#12000000"
                                 CornerRadius="12"
                                 MinHeight="220" />
 
                             <Border
+                                Grid.Row="2"
                                 Background="{StaticResource ResultSurfaceBrush}"
                                 BorderBrush="{StaticResource ResultCardBorderBrush}"
                                 BorderThickness="1"
@@ -571,7 +625,7 @@
                                 </StackPanel>
                             </Border>
 
-                            <Grid ColumnSpacing="12">
+                            <Grid Grid.Row="3" ColumnSpacing="12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="*" />
@@ -632,7 +686,7 @@
                                 </Border>
                             </Grid>
 
-                            <StackPanel Orientation="Horizontal" Spacing="12">
+                            <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="12">
                                 <Button
                                     x:Name="OpenOutputFileButton"
                                     Click="OpenOutputFileButton_Click"
@@ -661,7 +715,7 @@
                                     </StackPanel>
                                 </Button>
                             </StackPanel>
-                        </StackPanel>
+                        </Grid>
                     </ScrollViewer>
                 </Grid>
             </controls:GlassPanel.PanelContent>

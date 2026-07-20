@@ -12,7 +12,10 @@
         <controls:GlassPanel>
             <controls:GlassPanel.PanelContent>
                 <ScrollViewer>
-                    <StackPanel Spacing="20" MaxWidth="640">
+                    <StackPanel
+                        HorizontalAlignment="Center"
+                        Spacing="20"
+                        MaxWidth="640">
                         <TextBlock Style="{StaticResource TitleTextStyle}" Text="Settings" />
 
                         <InfoBar
