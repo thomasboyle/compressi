@@ -104,15 +104,20 @@
     <SolidColorBrush x:Key="SecurityBannerBorderBrush" Color="{StaticResource SecurityBannerBorderColor}" />
     <SolidColorBrush x:Key="SecurityBannerFillBrush" Color="#FFE4E8D4" />
 
-    <!-- Pre-tiled dither fills (WinUI ImageBrush cannot repeat) -->
+    <!-- Pre-tiled dither fills (WinUI ImageBrush cannot repeat). Stretch=None keeps
+         absolute pattern scale identical across differently sized controls. -->
     <ImageBrush
         x:Key="StippleFillBrush"
+        AlignmentX="Left"
+        AlignmentY="Top"
         ImageSource="ms-appx:///Assets/ui/pattern-stipple-fill.png"
-        Stretch="UniformToFill" />
+        Stretch="None" />
     <ImageBrush
         x:Key="StippleButtonBrush"
+        AlignmentX="Left"
+        AlignmentY="Top"
         ImageSource="ms-appx:///Assets/ui/pattern-stipple-button.png"
-        Stretch="UniformToFill" />
+        Stretch="None" />
 
     <Style x:Key="GlassInputComboBoxStyle" TargetType="ComboBox">
         <Setter Property="FontFamily" Value="{StaticResource AppPixelFontFamily}" />

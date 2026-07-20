@@ -55,18 +55,9 @@
                     <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="#F7F0E2" />
                     <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#F7F0E2" />
                     <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
-                    <ImageBrush
-                        x:Key="NavigationViewItemBackgroundSelected"
-                        ImageSource="ms-appx:///Assets/ui/pattern-stipple-fill.png"
-                        Stretch="UniformToFill" />
-                    <ImageBrush
-                        x:Key="NavigationViewItemBackgroundSelectedPointerOver"
-                        ImageSource="ms-appx:///Assets/ui/pattern-stipple-fill.png"
-                        Stretch="UniformToFill" />
-                    <ImageBrush
-                        x:Key="NavigationViewItemBackgroundSelectedPressed"
-                        ImageSource="ms-appx:///Assets/ui/pattern-stipple-button.png"
-                        Stretch="UniformToFill" />
+                    <StaticResource x:Key="NavigationViewItemBackgroundSelected" ResourceKey="StippleFillBrush" />
+                    <StaticResource x:Key="NavigationViewItemBackgroundSelectedPointerOver" ResourceKey="StippleFillBrush" />
+                    <StaticResource x:Key="NavigationViewItemBackgroundSelectedPressed" ResourceKey="StippleButtonBrush" />
                     <SolidColorBrush x:Key="NavigationViewItemForeground" Color="#2A3220" />
                     <SolidColorBrush x:Key="NavigationViewItemForegroundSelected" Color="#2A3220" />
                     <SolidColorBrush x:Key="NavigationViewItemForegroundPointerOver" Color="#2A3220" />

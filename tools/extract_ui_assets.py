@@ -185,17 +185,34 @@ def main() -> None:
     shield = trim_alpha(shield, 0)
     save(shield, "icon-shield.png", scales=[3, 4])
 
-    # Stipple pattern: synthesize from active nav colors
+    # Stipple pattern: fine low-contrast 4x4 tile for readable selected-control text
     active = palette["active_fill"]
-    # slightly darker olive for dots
-    dark = (max(0, active[0] - 30), max(0, active[1] - 25), max(0, active[2] - 30))
-    tile = Image.new("RGBA", (6, 6), (*active, 255))
+    mid = (max(0, active[0] - 18), max(0, active[1] - 15), max(0, active[2] - 18))
+    tile = Image.new("RGBA", (4, 4), (*active, 255))
     d = ImageDraw.Draw(tile)
-    for y in range(6):
-        for x in range(6):
-            if (x + y * 2) % 3 == 0:
-                d.point((x, y), fill=(*dark, 255))
+    d.point((0, 0), fill=(*mid, 255))
+    d.point((2, 2), fill=(*mid, 255))
     save(tile, "pattern-stipple.png", scales=[4, 8])
+
+    fill = Image.new("RGBA", (256, 256))
+    for y in range(0, 256, 4):
+        for x in range(0, 256, 4):
+            fill.paste(tile, (x, y))
+    fill.save(os.path.join(OUT, "pattern-stipple-fill.png"))
+    print("  pattern-stipple-fill.png: (256, 256)")
+
+    btn_base = (167, 177, 143)
+    btn_mid = (140, 150, 112)
+    btn_tile = Image.new("RGBA", (4, 4), (*btn_base, 255))
+    bd = ImageDraw.Draw(btn_tile)
+    bd.point((0, 0), fill=(*btn_mid, 255))
+    bd.point((2, 2), fill=(*btn_mid, 255))
+    btn_fill = Image.new("RGBA", (256, 256))
+    for y in range(0, 256, 4):
+        for x in range(0, 256, 4):
+            btn_fill.paste(btn_tile, (x, y))
+    btn_fill.save(os.path.join(OUT, "pattern-stipple-button.png"))
+    print("  pattern-stipple-button.png: (256, 256)")
 
     # Grain texture
     grain = Image.effect_noise((256, 256), 32).convert("L")
