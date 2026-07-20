@@ -29,9 +29,13 @@ public sealed class CompressViewModel : INotifyPropertyChanged
     private OutputFormat? _outputFormat = Compressi.Core.Models.OutputFormat.Mp4;
     private VideoCodec _videoCodec = VideoCodec.Av1;
     private double _progressPercent;
-    private string _elapsedDisplay = "0:00";
-    private string _remainingDisplay = "--:--";
-    private string _outputSizeDisplay = "0 MB";
+    private long _lastProgressSizeBytes = -1;
+    private double _lastProgressSpeed = double.NaN;
+    private int _lastElapsedWholeSeconds = -1;
+    private int _lastRemainingWholeSeconds = -1;
+    private string _elapsedDisplay = "Elapsed: 0:00";
+    private string _remainingDisplay = "Remaining: --:--";
+    private string _outputSizeDisplay = "Output: 0 MB";
     private string _speedDisplay = string.Empty;
     private string? _resolutionOverride;
     private string? _frameRateOverride;
@@ -41,6 +45,7 @@ public sealed class CompressViewModel : INotifyPropertyChanged
     private string? _outputDirectoryOverride;
     private int _propertyChangedBatchDepth;
     private bool _hasBatchedPropertyChanged;
+    private readonly HashSet<string> _batchedPropertyNames = new(StringComparer.Ordinal);
 
     public CompressViewModel()
         : this(new MediaProbeService(), new FfmpegEncodingService(), new HistoryStore(), new SettingsStore())
@@ -521,15 +526,15 @@ public sealed class CompressViewModel : INotifyPropertyChanged
         try
         {
             var job = BuildJob();
-            // Progress<T> marshals to the UI SynchronizationContext captured here.
-            var progress = new Progress<EncodingProgress>(update =>
+            var syncContext = SynchronizationContext.Current;
+            var progress = new EncodingProgressSink(syncContext, (percent, sizeBytes, speed, finished) =>
             {
-                if (!ShouldApplyUiProgress(update.IsFinished))
+                if (!ShouldApplyUiProgress(finished))
                 {
                     return;
                 }
 
-                ApplyProgress(update, encodeStarted);
+                ApplyProgress(percent, sizeBytes, speed, finished, encodeStarted);
             });
 
             var result = await _encodingService
@@ -742,20 +747,18 @@ public sealed class CompressViewModel : INotifyPropertyChanged
 
     private void SaveHistory(CompressionResult result, CompressionJobStatus status)
     {
-        _historyStore.Add(new HistoryEntry
-        {
-            Id = 0,
-            SourceName = result.Source.FileName,
-            SourcePath = result.Source.FilePath,
-            OutputPath = result.OutputPath,
-            Preset = Preset,
-            Format = OutputFormat!.Value,
-            Status = status,
-            OriginalSizeBytes = result.Source.FileSizeBytes,
-            CompressedSizeBytes = result.Output.FileSizeBytes,
-            CompressionRatioPercent = result.CompressionRatioPercent,
-            CreatedAt = DateTimeOffset.UtcNow,
-        });
+        _historyStore.Add(HistoryEntry.Create(
+            id: 0,
+            sourceName: result.Source.FileName,
+            sourcePath: result.Source.FilePath,
+            outputPath: result.OutputPath,
+            preset: Preset,
+            format: OutputFormat!.Value,
+            status: status,
+            originalSizeBytes: result.Source.FileSizeBytes,
+            compressedSizeBytes: result.Output.FileSizeBytes,
+            compressionRatioPercent: result.CompressionRatioPercent,
+            createdAt: DateTimeOffset.UtcNow));
         HistoryChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -766,20 +769,18 @@ public sealed class CompressViewModel : INotifyPropertyChanged
             return;
         }
 
-        _historyStore.Add(new HistoryEntry
-        {
-            Id = 0,
-            SourceName = SourceFile.FileName,
-            SourcePath = SourceFile.FilePath,
-            OutputPath = null,
-            Preset = Preset,
-            Format = OutputFormat!.Value,
-            Status = CompressionJobStatus.Failed,
-            OriginalSizeBytes = SourceFile.FileSizeBytes,
-            CompressedSizeBytes = 0,
-            CompressionRatioPercent = 0,
-            CreatedAt = DateTimeOffset.UtcNow,
-        });
+        _historyStore.Add(HistoryEntry.Create(
+            id: 0,
+            sourceName: SourceFile.FileName,
+            sourcePath: SourceFile.FilePath,
+            outputPath: null,
+            preset: Preset,
+            format: OutputFormat!.Value,
+            status: CompressionJobStatus.Failed,
+            originalSizeBytes: SourceFile.FileSizeBytes,
+            compressedSizeBytes: 0,
+            compressionRatioPercent: 0,
+            createdAt: DateTimeOffset.UtcNow));
         HistoryChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -790,20 +791,18 @@ public sealed class CompressViewModel : INotifyPropertyChanged
             return;
         }
 
-        _historyStore.Add(new HistoryEntry
-        {
-            Id = 0,
-            SourceName = SourceFile.FileName,
-            SourcePath = SourceFile.FilePath,
-            OutputPath = null,
-            Preset = Preset,
-            Format = OutputFormat!.Value,
-            Status = CompressionJobStatus.Cancelled,
-            OriginalSizeBytes = SourceFile.FileSizeBytes,
-            CompressedSizeBytes = 0,
-            CompressionRatioPercent = 0,
-            CreatedAt = DateTimeOffset.UtcNow,
-        });
+        _historyStore.Add(HistoryEntry.Create(
+            id: 0,
+            sourceName: SourceFile.FileName,
+            sourcePath: SourceFile.FilePath,
+            outputPath: null,
+            preset: Preset,
+            format: OutputFormat!.Value,
+            status: CompressionJobStatus.Cancelled,
+            originalSizeBytes: SourceFile.FileSizeBytes,
+            compressedSizeBytes: 0,
+            compressionRatioPercent: 0,
+            createdAt: DateTimeOffset.UtcNow));
         HistoryChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -814,56 +813,59 @@ public sealed class CompressViewModel : INotifyPropertyChanged
             : null;
     }
 
-    private void ApplyProgress(EncodingProgress update, DateTimeOffset startedAt)
+    private void ApplyProgress(
+        double? progressPercent,
+        long? outputSizeBytes,
+        double? speedMultiplier,
+        bool isFinished,
+        DateTimeOffset startedAt)
     {
         var progressChanged = false;
 
-        if (update.ProgressPercent is not null
-            && Math.Abs(_progressPercent - update.ProgressPercent.Value) >= 0.01)
+        if (progressPercent is not null
+            && Math.Abs(_progressPercent - progressPercent.Value) >= 0.01)
         {
-            _progressPercent = update.ProgressPercent.Value;
+            _progressPercent = progressPercent.Value;
             progressChanged = true;
         }
 
-        if (update.OutputSizeBytes is not null)
+        if (outputSizeBytes is not null && outputSizeBytes.Value != _lastProgressSizeBytes)
         {
-            var sizeDisplay = VideoFile.FormatFileSize(update.OutputSizeBytes.Value);
-            if (!string.Equals(_outputSizeDisplay, sizeDisplay, StringComparison.Ordinal))
-            {
-                _outputSizeDisplay = sizeDisplay;
-                progressChanged = true;
-            }
+            _lastProgressSizeBytes = outputSizeBytes.Value;
+            _outputSizeDisplay = $"Output: {VideoFile.FormatFileSize(outputSizeBytes.Value)}";
+            progressChanged = true;
         }
 
-        if (update.SpeedMultiplier is not null)
+        if (speedMultiplier is not null
+            && (double.IsNaN(_lastProgressSpeed)
+                || Math.Abs(_lastProgressSpeed - speedMultiplier.Value) >= 0.01))
         {
-            var speedDisplay = $"{update.SpeedMultiplier.Value:0.##}x";
-            if (!string.Equals(_speedDisplay, speedDisplay, StringComparison.Ordinal))
-            {
-                _speedDisplay = speedDisplay;
-                progressChanged = true;
-            }
+            _lastProgressSpeed = speedMultiplier.Value;
+            _speedDisplay = $"Speed: {speedMultiplier.Value:0.##}x";
+            progressChanged = true;
         }
 
         var elapsed = DateTimeOffset.UtcNow - startedAt;
-        var elapsedDisplay = VideoFile.FormatDuration(elapsed);
-        if (!string.Equals(_elapsedDisplay, elapsedDisplay, StringComparison.Ordinal))
+        var elapsedWholeSeconds = (int)elapsed.TotalSeconds;
+        if (elapsedWholeSeconds != _lastElapsedWholeSeconds)
         {
-            _elapsedDisplay = elapsedDisplay;
+            _lastElapsedWholeSeconds = elapsedWholeSeconds;
+            _elapsedDisplay = $"Elapsed: {VideoFile.FormatDuration(elapsed)}";
             progressChanged = true;
         }
 
-        if (update.ProgressPercent is > 0 and < 100)
+        if (progressPercent is > 0 and < 100)
         {
-            var remainingSeconds = elapsed.TotalSeconds / (update.ProgressPercent.Value / 100) - elapsed.TotalSeconds;
-            var remainingDisplay = VideoFile.FormatDuration(TimeSpan.FromSeconds(Math.Max(0, remainingSeconds)));
-            if (!string.Equals(_remainingDisplay, remainingDisplay, StringComparison.Ordinal))
+            var remainingSeconds = elapsed.TotalSeconds / (progressPercent.Value / 100) - elapsed.TotalSeconds;
+            var remainingWholeSeconds = (int)Math.Max(0, remainingSeconds);
+            if (remainingWholeSeconds != _lastRemainingWholeSeconds)
             {
-                _remainingDisplay = remainingDisplay;
+                _lastRemainingWholeSeconds = remainingWholeSeconds;
+                _remainingDisplay = $"Remaining: {VideoFile.FormatDuration(TimeSpan.FromSeconds(remainingWholeSeconds))}";
                 progressChanged = true;
             }
         }
-        else if (update.IsFinished)
+        else if (isFinished)
         {
             if (Math.Abs(_progressPercent - 100) >= 0.01)
             {
@@ -871,14 +873,15 @@ public sealed class CompressViewModel : INotifyPropertyChanged
                 progressChanged = true;
             }
 
-            if (!string.Equals(_remainingDisplay, "0:00", StringComparison.Ordinal))
+            if (_lastRemainingWholeSeconds != 0
+                || !string.Equals(_remainingDisplay, "Remaining: 0:00", StringComparison.Ordinal))
             {
-                _remainingDisplay = "0:00";
+                _lastRemainingWholeSeconds = 0;
+                _remainingDisplay = "Remaining: 0:00";
                 progressChanged = true;
             }
         }
 
-        // One notification so the page refreshes progress controls once per tick.
         if (progressChanged)
         {
             OnPropertyChanged(nameof(ProgressPercent));
@@ -888,9 +891,13 @@ public sealed class CompressViewModel : INotifyPropertyChanged
     private void ResetProgress()
     {
         _progressPercent = 0;
-        _elapsedDisplay = "0:00";
-        _remainingDisplay = "--:--";
-        _outputSizeDisplay = "0 MB";
+        _lastProgressSizeBytes = -1;
+        _lastProgressSpeed = double.NaN;
+        _lastElapsedWholeSeconds = -1;
+        _lastRemainingWholeSeconds = -1;
+        _elapsedDisplay = "Elapsed: 0:00";
+        _remainingDisplay = "Remaining: --:--";
+        _outputSizeDisplay = "Output: 0 MB";
         _speedDisplay = string.Empty;
         OnPropertyChanged(nameof(ProgressPercent));
         OnPropertyChanged(nameof(ElapsedDisplay));
@@ -927,6 +934,11 @@ public sealed class CompressViewModel : INotifyPropertyChanged
         if (_propertyChangedBatchDepth > 0)
         {
             _hasBatchedPropertyChanged = true;
+            if (propertyName is not null)
+            {
+                _batchedPropertyNames.Add(propertyName);
+            }
+
             return;
         }
 
@@ -938,6 +950,7 @@ public sealed class CompressViewModel : INotifyPropertyChanged
         if (_propertyChangedBatchDepth == 0)
         {
             _hasBatchedPropertyChanged = false;
+            _batchedPropertyNames.Clear();
         }
 
         _propertyChangedBatchDepth++;
@@ -952,8 +965,12 @@ public sealed class CompressViewModel : INotifyPropertyChanged
         }
 
         _hasBatchedPropertyChanged = false;
-        // Null property name means "many properties changed" — listeners refresh UI once.
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+        foreach (var propertyName in _batchedPropertyNames)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        _batchedPropertyNames.Clear();
     }
 
     private readonly struct PropertyChangedBatch : IDisposable
@@ -967,5 +984,41 @@ public sealed class CompressViewModel : INotifyPropertyChanged
         }
 
         public void Dispose() => _owner.EndPropertyChangedBatch();
+    }
+
+    private sealed class EncodingProgressSink : IProgress<EncodingProgressState>
+    {
+        private readonly SynchronizationContext? _syncContext;
+        private readonly Action<double?, long?, double?, bool> _handler;
+
+        public EncodingProgressSink(
+            SynchronizationContext? syncContext,
+            Action<double?, long?, double?, bool> handler)
+        {
+            _syncContext = syncContext;
+            _handler = handler;
+        }
+
+        public void Report(EncodingProgressState value)
+        {
+            var percent = value.ProgressPercent;
+            var sizeBytes = value.OutputSizeBytes;
+            var speed = value.SpeedMultiplier;
+            var finished = value.IsFinished;
+
+            if (_syncContext is null)
+            {
+                _handler(percent, sizeBytes, speed, finished);
+                return;
+            }
+
+            _syncContext.Post(
+                static state =>
+                {
+                    var args = ((Action<double?, long?, double?, bool> Handler, double? Percent, long? Size, double? Speed, bool Finished))state!;
+                    args.Handler(args.Percent, args.Size, args.Speed, args.Finished);
+                },
+                (_handler, percent, sizeBytes, speed, finished));
+        }
     }
 }

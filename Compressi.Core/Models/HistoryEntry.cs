@@ -24,19 +24,55 @@ public sealed class HistoryEntry
 
     public DateTimeOffset CreatedAt { get; init; }
 
-    public string CreatedAtDisplay => CreatedAt.ToLocalTime().ToString("g");
+    public required string CreatedAtDisplay { get; init; }
 
-    public string OriginalSizeDisplay => VideoFile.FormatFileSize(OriginalSizeBytes);
+    public required string OriginalSizeDisplay { get; init; }
 
-    public string CompressedSizeDisplay => VideoFile.FormatFileSize(CompressedSizeBytes);
+    public required string CompressedSizeDisplay { get; init; }
 
-    public string RatioDisplay => $"{CompressionRatioPercent:0.#}%";
+    public required string RatioDisplay { get; init; }
 
-    public string StatusDisplay => Status switch
+    public required string StatusDisplay { get; init; }
+
+    public static HistoryEntry Create(
+        long id,
+        string sourceName,
+        string sourcePath,
+        string? outputPath,
+        CompressionPreset preset,
+        OutputFormat format,
+        CompressionJobStatus status,
+        long originalSizeBytes,
+        long compressedSizeBytes,
+        double compressionRatioPercent,
+        DateTimeOffset createdAt)
+    {
+        return new HistoryEntry
+        {
+            Id = id,
+            SourceName = sourceName,
+            SourcePath = sourcePath,
+            OutputPath = outputPath,
+            Preset = preset,
+            Format = format,
+            Status = status,
+            OriginalSizeBytes = originalSizeBytes,
+            CompressedSizeBytes = compressedSizeBytes,
+            CompressionRatioPercent = compressionRatioPercent,
+            CreatedAt = createdAt,
+            CreatedAtDisplay = createdAt.ToLocalTime().ToString("g"),
+            OriginalSizeDisplay = VideoFile.FormatFileSize(originalSizeBytes),
+            CompressedSizeDisplay = VideoFile.FormatFileSize(compressedSizeBytes),
+            RatioDisplay = $"{compressionRatioPercent:0.#}%",
+            StatusDisplay = FormatStatus(status),
+        };
+    }
+
+    private static string FormatStatus(CompressionJobStatus status) => status switch
     {
         CompressionJobStatus.Completed => "Completed",
         CompressionJobStatus.Failed => "Failed",
         CompressionJobStatus.Cancelled => "Cancelled",
-        _ => throw new ArgumentOutOfRangeException(nameof(Status), Status, "Unknown status."),
+        _ => throw new ArgumentOutOfRangeException(nameof(status), status, "Unknown status."),
     };
 }

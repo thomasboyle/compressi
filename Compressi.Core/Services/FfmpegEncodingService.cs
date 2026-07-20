@@ -26,7 +26,7 @@ public sealed class FfmpegEncodingService : IEncodingService
 
     public async Task<CompressionResult> EncodeAsync(
         CompressionJob job,
-        IProgress<EncodingProgress>? progress = null,
+        IProgress<EncodingProgressState>? progress = null,
         CancellationToken cancellationToken = default)
     {
         if (!File.Exists(_ffmpegPath))
@@ -53,7 +53,7 @@ public sealed class FfmpegEncodingService : IEncodingService
 
     private async Task<CompressionResult> EncodeCoreAsync(
         CompressionJob job,
-        IProgress<EncodingProgress>? progress,
+        IProgress<EncodingProgressState>? progress,
         CancellationToken cancellationToken)
     {
         // Resolve the encode plan off the UI thread (CPU-only 8 MB plans are non-trivial).
@@ -105,7 +105,7 @@ public sealed class FfmpegEncodingService : IEncodingService
                 ? job.Source.FileSizeBytes / (1024d * 1024d) / elapsed.TotalSeconds
                 : 0;
 
-            progress?.Report(new EncodingProgress
+            progress?.Report(new EncodingProgressState
             {
                 ProgressPercent = 100,
                 IsFinished = true,
@@ -166,7 +166,7 @@ public sealed class FfmpegEncodingService : IEncodingService
         CompressionJob job,
         FfmpegEncodePlan originalPlan,
         int adjustedBitrateKbps,
-        IProgress<EncodingProgress>? progress,
+        IProgress<EncodingProgressState>? progress,
         CancellationToken cancellationToken)
     {
         // Single constrained pass from frozen plan dims/fps/audio — avoid a second full 2-pass.
@@ -177,7 +177,7 @@ public sealed class FfmpegEncodingService : IEncodingService
     private async Task RunPassAsync(
         FfmpegEncodePass pass,
         TimeSpan totalDuration,
-        IProgress<EncodingProgress>? progress,
+        IProgress<EncodingProgressState>? progress,
         CancellationToken cancellationToken)
     {
         var startInfo = new ProcessStartInfo
@@ -259,7 +259,7 @@ public sealed class FfmpegEncodingService : IEncodingService
 
                 if (state.IsFinished || ShouldReportProgress(ref lastReportTimestamp))
                 {
-                    progress.Report(state.ToProgress());
+                    progress.Report(state);
                     hasPendingReport = false;
                 }
                 else
@@ -270,7 +270,7 @@ public sealed class FfmpegEncodingService : IEncodingService
 
             if (hasPendingReport && progress is not null)
             {
-                progress.Report(state.ToProgress());
+                progress.Report(state);
             }
 
             await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
@@ -378,14 +378,15 @@ public sealed class FfmpegEncodingService : IEncodingService
         }
     }
 
-    private sealed class PassProgressAdapter : IProgress<EncodingProgress>
+    private sealed class PassProgressAdapter : IProgress<EncodingProgressState>
     {
-        private readonly IProgress<EncodingProgress>? _inner;
+        private readonly IProgress<EncodingProgressState>? _inner;
+        private readonly EncodingProgressState _scratch = new();
         private readonly int _passCount;
         private readonly double _passStart;
         private readonly double _passShare;
 
-        public PassProgressAdapter(IProgress<EncodingProgress>? inner, int passIndex, int passCount)
+        public PassProgressAdapter(IProgress<EncodingProgressState>? inner, int passIndex, int passCount)
         {
             _inner = inner;
             _passCount = passCount;
@@ -393,7 +394,7 @@ public sealed class FfmpegEncodingService : IEncodingService
             _passShare = passCount > 0 ? 100d / passCount : 100;
         }
 
-        public void Report(EncodingProgress value)
+        public void Report(EncodingProgressState value)
         {
             if (_inner is null)
             {
@@ -406,8 +407,12 @@ public sealed class FfmpegEncodingService : IEncodingService
                 return;
             }
 
-            var scaled = _passStart + value.ProgressPercent.Value * _passShare / 100d;
-            _inner.Report(value with { ProgressPercent = Math.Min(99, scaled) });
+            _scratch.OutTime = value.OutTime;
+            _scratch.OutputSizeBytes = value.OutputSizeBytes;
+            _scratch.SpeedMultiplier = value.SpeedMultiplier;
+            _scratch.IsFinished = value.IsFinished;
+            _scratch.ProgressPercent = Math.Min(99, _passStart + value.ProgressPercent.Value * _passShare / 100d);
+            _inner.Report(_scratch);
         }
     }
 }

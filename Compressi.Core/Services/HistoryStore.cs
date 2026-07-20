@@ -148,19 +148,17 @@ public sealed class HistoryStore
 
     private static HistoryEntry ReadEntry(SqliteDataReader reader)
     {
-        return new HistoryEntry
-        {
-            Id = reader.GetInt64(0),
-            SourceName = reader.GetString(1),
-            SourcePath = reader.GetString(2),
-            OutputPath = reader.IsDBNull(3) ? null : reader.GetString(3),
-            Preset = Enum.Parse<CompressionPreset>(reader.GetString(4)),
-            Format = Enum.Parse<OutputFormat>(reader.GetString(5)),
-            Status = Enum.Parse<CompressionJobStatus>(reader.GetString(6)),
-            OriginalSizeBytes = reader.GetInt64(7),
-            CompressedSizeBytes = reader.GetInt64(8),
-            CompressionRatioPercent = reader.GetDouble(9),
-            CreatedAt = DateTimeOffset.Parse(reader.GetString(10)),
-        };
+        return HistoryEntry.Create(
+            id: reader.GetInt64(0),
+            sourceName: reader.GetString(1),
+            sourcePath: reader.GetString(2),
+            outputPath: reader.IsDBNull(3) ? null : reader.GetString(3),
+            preset: Enum.Parse<CompressionPreset>(reader.GetString(4)),
+            format: Enum.Parse<OutputFormat>(reader.GetString(5)),
+            status: Enum.Parse<CompressionJobStatus>(reader.GetString(6)),
+            originalSizeBytes: reader.GetInt64(7),
+            compressedSizeBytes: reader.GetInt64(8),
+            compressionRatioPercent: reader.GetDouble(9),
+            createdAt: DateTimeOffset.Parse(reader.GetString(10)));
     }
 }

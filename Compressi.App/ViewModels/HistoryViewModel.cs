@@ -98,7 +98,8 @@ public sealed class HistoryViewModel : INotifyPropertyChanged
     public void DeleteEntry(HistoryEntry entry)
     {
         _historyStore.Delete(entry.Id);
-        Refresh();
+        _allEntries = _allEntries.Where(e => e.Id != entry.Id).ToList();
+        ApplyFilter();
     }
 
     public bool TryOpenOutputFolder(HistoryEntry entry, out string? errorMessage)

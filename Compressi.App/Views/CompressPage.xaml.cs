@@ -31,6 +31,7 @@ public sealed partial class CompressPage : Page, IAppPage
     private bool _suppressPresetSync;
     private bool _suppressKeepAudioSound;
     private bool _uiStateUpdateQueued;
+    private UiZone _pendingUiZones;
     private bool _isActive;
     private bool _uiDirty;
     private string? _loadedPreviewPath;
@@ -38,6 +39,21 @@ public sealed partial class CompressPage : Page, IAppPage
     private string? _lastHeardSourcePath;
     private string? _lastHeardResultPath;
     private MediaPlayerElement? _previewPlayer;
+
+    [Flags]
+    private enum UiZone
+    {
+        None = 0,
+        DropZone = 1 << 0,
+        FileChip = 1 << 1,
+        EncodeChrome = 1 << 2,
+        Preset = 1 << 3,
+        FormatCodec = 1 << 4,
+        Status = 1 << 5,
+        OutputFolder = 1 << 6,
+        Result = 1 << 7,
+        All = DropZone | FileChip | EncodeChrome | Preset | FormatCodec | Status | OutputFolder | Result,
+    }
 
     public CompressViewModel ViewModel => App.CompressViewModel;
 
@@ -108,11 +124,62 @@ public sealed partial class CompressPage : Page, IAppPage
             case nameof(CompressViewModel.SpeedDisplay):
                 UpdateProgressUi();
                 return;
+            case null:
+                QueueUiZoneUpdate(UiZone.All);
+                return;
             default:
-                QueueUiStateUpdate();
+                QueueUiZoneUpdate(MapPropertyToZones(e.PropertyName));
                 return;
         }
     }
+
+    private static UiZone MapPropertyToZones(string propertyName) => propertyName switch
+    {
+        nameof(CompressViewModel.IsProbing)
+            or nameof(CompressViewModel.DropZoneMessage)
+            or nameof(CompressViewModel.IsDropZoneEnabled)
+            or nameof(CompressViewModel.IsInputLocked)
+            => UiZone.DropZone | UiZone.EncodeChrome,
+
+        nameof(CompressViewModel.SourceFile)
+            or nameof(CompressViewModel.HasSourceFile)
+            or nameof(CompressViewModel.SourceFileName)
+            or nameof(CompressViewModel.SourceMetadataLine)
+            => UiZone.FileChip | UiZone.EncodeChrome,
+
+        nameof(CompressViewModel.IsEncoding)
+            or nameof(CompressViewModel.CanStartCompression)
+            or nameof(CompressViewModel.CanCancelCompression)
+            or nameof(CompressViewModel.ShowEncodingProgress)
+            or nameof(CompressViewModel.ShowEmptyCompleteState)
+            => UiZone.EncodeChrome | UiZone.Result | UiZone.DropZone | UiZone.FileChip,
+
+        nameof(CompressViewModel.Preset)
+            or nameof(CompressViewModel.PresetHelperText)
+            => UiZone.Preset | UiZone.Status,
+
+        nameof(CompressViewModel.OutputFormat)
+            or nameof(CompressViewModel.VideoCodec)
+            => UiZone.FormatCodec | UiZone.EncodeChrome,
+
+        nameof(CompressViewModel.ErrorMessage)
+            or nameof(CompressViewModel.HasError)
+            or nameof(CompressViewModel.ErrorActionLabel)
+            or nameof(CompressViewModel.HasErrorAction)
+            or nameof(CompressViewModel.InfoMessage)
+            or nameof(CompressViewModel.HasInfo)
+            => UiZone.Status,
+
+        nameof(CompressViewModel.OutputDirectoryOverride)
+            or nameof(CompressViewModel.OutputDirectoryDisplay)
+            => UiZone.OutputFolder,
+
+        nameof(CompressViewModel.Result)
+            or nameof(CompressViewModel.HasResult)
+            => UiZone.Result | UiZone.EncodeChrome,
+
+        _ => UiZone.None,
+    };
 
     private void PlayOutcomeSound(string? propertyName)
     {
@@ -162,9 +229,15 @@ public sealed partial class CompressPage : Page, IAppPage
         }
     }
 
-    private void QueueUiStateUpdate()
+    private void QueueUiZoneUpdate(UiZone zones)
     {
-        if (!_isActive || _uiStateUpdateQueued)
+        if (!_isActive || zones == UiZone.None)
+        {
+            return;
+        }
+
+        _pendingUiZones |= zones;
+        if (_uiStateUpdateQueued)
         {
             return;
         }
@@ -173,9 +246,11 @@ public sealed partial class CompressPage : Page, IAppPage
         DispatcherQueue.TryEnqueue(() =>
         {
             _uiStateUpdateQueued = false;
-            if (_isActive)
+            var pending = _pendingUiZones;
+            _pendingUiZones = UiZone.None;
+            if (_isActive && pending != UiZone.None)
             {
-                UpdateUiState();
+                ApplyUiZones(pending);
             }
         });
     }
@@ -183,12 +258,18 @@ public sealed partial class CompressPage : Page, IAppPage
     private void UpdateProgressUi()
     {
         EncodingProgressBar.Value = ViewModel.ProgressPercent;
-        ElapsedText.Text = $"Elapsed: {ViewModel.ElapsedDisplay}";
-        RemainingText.Text = $"Remaining: {ViewModel.RemainingDisplay}";
-        OutputSizeText.Text = $"Output: {ViewModel.OutputSizeDisplay}";
-        SpeedText.Text = string.IsNullOrWhiteSpace(ViewModel.SpeedDisplay)
-            ? string.Empty
-            : $"Speed: {ViewModel.SpeedDisplay}";
+        SetTextIfChanged(ElapsedText, ViewModel.ElapsedDisplay);
+        SetTextIfChanged(RemainingText, ViewModel.RemainingDisplay);
+        SetTextIfChanged(OutputSizeText, ViewModel.OutputSizeDisplay);
+        SetTextIfChanged(SpeedText, ViewModel.SpeedDisplay);
+    }
+
+    private static void SetTextIfChanged(TextBlock control, string value)
+    {
+        if (!string.Equals(control.Text, value, StringComparison.Ordinal))
+        {
+            control.Text = value;
+        }
     }
 
     private void SyncPresetFromViewModel()
@@ -223,77 +304,108 @@ public sealed partial class CompressPage : Page, IAppPage
 
     private void UpdateUiState()
     {
-        ProbeProgressRing.IsActive = ViewModel.IsProbing;
-        ProbeProgressRing.Visibility = ViewModel.IsProbing ? Visibility.Visible : Visibility.Collapsed;
-        DropZoneIcon.Visibility = ViewModel.IsProbing ? Visibility.Collapsed : Visibility.Visible;
-        DropZoneText.Text = ViewModel.DropZoneMessage;
-        RemoveFileButton.IsEnabled = !ViewModel.IsInputLocked;
-        DropZoneHitTarget.IsHitTestVisible = ViewModel.IsDropZoneEnabled;
-        BrowseFilesButton.IsEnabled = ViewModel.IsDropZoneEnabled;
-
-        if (!ViewModel.IsDropZoneEnabled)
-        {
-            ApplyDropZoneVisualState(isHovered: false);
-        }
-        StartCompressionButton.IsEnabled = ViewModel.CanStartCompression;
-        StartCompressionButton.Visibility = ViewModel.ShowEncodingProgress ? Visibility.Collapsed : Visibility.Visible;
-        CancelCompressionButton.Visibility = ViewModel.ShowEncodingProgress ? Visibility.Visible : Visibility.Collapsed;
-        EncodingProgressPanel.Visibility = ViewModel.ShowEncodingProgress ? Visibility.Visible : Visibility.Collapsed;
         UpdateProgressUi();
+        ApplyUiZones(UiZone.All);
+    }
 
-        _suppressPresetSync = true;
-        PresetComboBox.SelectedIndex = ViewModel.Preset switch
+    private void ApplyUiZones(UiZone zones)
+    {
+        if ((zones & UiZone.DropZone) != 0)
         {
-            CompressionPreset.Ultra => 0,
-            CompressionPreset.EightMB => 1,
-            _ => 2,
-        };
-        _suppressPresetSync = false;
+            ProbeProgressRing.IsActive = ViewModel.IsProbing;
+            ProbeProgressRing.Visibility = ViewModel.IsProbing ? Visibility.Visible : Visibility.Collapsed;
+            DropZoneIcon.Visibility = ViewModel.IsProbing ? Visibility.Collapsed : Visibility.Visible;
+            DropZoneText.Text = ViewModel.DropZoneMessage;
+            RemoveFileButton.IsEnabled = !ViewModel.IsInputLocked;
+            DropZoneHitTarget.IsHitTestVisible = ViewModel.IsDropZoneEnabled;
+            BrowseFilesButton.IsEnabled = ViewModel.IsDropZoneEnabled;
 
-        SyncFormatFromViewModel();
-        SyncCodecFromViewModel();
-
-        UpdateStatusInfoBar();
-        OutputFolderPathText.Text = $"Saving to: {ViewModel.OutputDirectoryDisplay}";
-
-        if (ViewModel.HasSourceFile)
-        {
-            FileChip.Visibility = Visibility.Visible;
-            FileNameText.Text = ViewModel.SourceFileName;
-            FileMetadataText.Text = ViewModel.SourceMetadataLine;
-        }
-        else
-        {
-            FileChip.Visibility = Visibility.Collapsed;
-        }
-
-        EmptyCompletePanel.Visibility = ViewModel.ShowEmptyCompleteState ? Visibility.Visible : Visibility.Collapsed;
-
-        if (ViewModel.HasResult)
-        {
-            var resultPanel = EnsureResultPanel();
-            resultPanel.Visibility = Visibility.Visible;
-        }
-        else if (ResultPanel is not null)
-        {
-            ResultPanel.Visibility = Visibility.Collapsed;
-        }
-
-        if (ViewModel.Result is { } result)
-        {
-            BindResultPanel(result);
-            if (!string.Equals(_loadedPreviewPath, result.OutputPath, StringComparison.OrdinalIgnoreCase))
+            if (!ViewModel.IsDropZoneEnabled)
             {
-                _loadedPreviewPath = result.OutputPath;
-                _ = LoadPreviewAsync(result.OutputPath);
+                ApplyDropZoneVisualState(isHovered: false);
             }
         }
-        else if (_loadedPreviewPath is not null)
+
+        if ((zones & UiZone.EncodeChrome) != 0)
         {
-            _loadedPreviewPath = null;
-            if (_previewPlayer is not null)
+            StartCompressionButton.IsEnabled = ViewModel.CanStartCompression;
+            StartCompressionButton.Visibility = ViewModel.ShowEncodingProgress ? Visibility.Collapsed : Visibility.Visible;
+            CancelCompressionButton.Visibility = ViewModel.ShowEncodingProgress ? Visibility.Visible : Visibility.Collapsed;
+            EncodingProgressPanel.Visibility = ViewModel.ShowEncodingProgress ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        if ((zones & UiZone.Preset) != 0)
+        {
+            _suppressPresetSync = true;
+            PresetComboBox.SelectedIndex = ViewModel.Preset switch
             {
-                _previewPlayer.Source = null;
+                CompressionPreset.Ultra => 0,
+                CompressionPreset.EightMB => 1,
+                _ => 2,
+            };
+            _suppressPresetSync = false;
+        }
+
+        if ((zones & UiZone.FormatCodec) != 0)
+        {
+            SyncFormatFromViewModel();
+            SyncCodecFromViewModel();
+        }
+
+        if ((zones & UiZone.Status) != 0)
+        {
+            UpdateStatusInfoBar();
+        }
+
+        if ((zones & UiZone.OutputFolder) != 0)
+        {
+            OutputFolderPathText.Text = $"Saving to: {ViewModel.OutputDirectoryDisplay}";
+        }
+
+        if ((zones & UiZone.FileChip) != 0)
+        {
+            if (ViewModel.HasSourceFile)
+            {
+                FileChip.Visibility = Visibility.Visible;
+                FileNameText.Text = ViewModel.SourceFileName;
+                FileMetadataText.Text = ViewModel.SourceMetadataLine;
+            }
+            else
+            {
+                FileChip.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        if ((zones & UiZone.Result) != 0)
+        {
+            EmptyCompletePanel.Visibility = ViewModel.ShowEmptyCompleteState ? Visibility.Visible : Visibility.Collapsed;
+
+            if (ViewModel.HasResult)
+            {
+                var resultPanel = EnsureResultPanel();
+                resultPanel.Visibility = Visibility.Visible;
+            }
+            else if (ResultPanel is not null)
+            {
+                ResultPanel.Visibility = Visibility.Collapsed;
+            }
+
+            if (ViewModel.Result is { } result)
+            {
+                BindResultPanel(result);
+                if (!string.Equals(_loadedPreviewPath, result.OutputPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    _loadedPreviewPath = result.OutputPath;
+                    _ = LoadPreviewAsync(result.OutputPath);
+                }
+            }
+            else if (_loadedPreviewPath is not null)
+            {
+                _loadedPreviewPath = null;
+                if (_previewPlayer is not null)
+                {
+                    _previewPlayer.Source = null;
+                }
             }
         }
     }

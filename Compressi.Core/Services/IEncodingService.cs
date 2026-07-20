@@ -6,6 +6,6 @@ public interface IEncodingService
 {
     Task<CompressionResult> EncodeAsync(
         CompressionJob job,
-        IProgress<EncodingProgress>? progress = null,
+        IProgress<EncodingProgressState>? progress = null,
         CancellationToken cancellationToken = default);
 }

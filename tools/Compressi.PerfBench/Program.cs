@@ -41,38 +41,36 @@ var settingsPath = Path.Combine(workDir, $"settings-{Guid.NewGuid():N}.json");
 var history = new HistoryStore(historyDb);
 for (var i = 0; i < 50; i++)
 {
-    history.Add(new HistoryEntry
-    {
-        SourceName = $"clip-{i}.mp4",
-        SourcePath = $@"C:\videos\clip-{i}.mp4",
-        OutputPath = $@"C:\out\clip-{i}.mp4",
-        Preset = CompressionPreset.Balanced,
-        Format = OutputFormat.Mp4,
-        Status = CompressionJobStatus.Completed,
-        OriginalSizeBytes = 10_000_000 + i,
-        CompressedSizeBytes = 4_000_000 + i,
-        CompressionRatioPercent = 60,
-        CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-i),
-    });
+    history.Add(HistoryEntry.Create(
+        id: 0,
+        sourceName: $"clip-{i}.mp4",
+        sourcePath: $@"C:\videos\clip-{i}.mp4",
+        outputPath: $@"C:\out\clip-{i}.mp4",
+        preset: CompressionPreset.Balanced,
+        format: OutputFormat.Mp4,
+        status: CompressionJobStatus.Completed,
+        originalSizeBytes: 10_000_000 + i,
+        compressedSizeBytes: 4_000_000 + i,
+        compressionRatioPercent: 60,
+        createdAt: DateTimeOffset.UtcNow.AddMinutes(-i)));
 }
 
 results.Add(Bench("history_get_all", 20, () => _ = history.GetAll()));
 results.Add(Bench("history_search", 20, () => _ = history.Search("clip-1")));
 results.Add(Bench("history_add", 20, () =>
 {
-    history.Add(new HistoryEntry
-    {
-        SourceName = "bench.mp4",
-        SourcePath = @"C:\videos\bench.mp4",
-        OutputPath = @"C:\out\bench.mp4",
-        Preset = CompressionPreset.Ultra,
-        Format = OutputFormat.Mp4,
-        Status = CompressionJobStatus.Completed,
-        OriginalSizeBytes = 1,
-        CompressedSizeBytes = 1,
-        CompressionRatioPercent = 0,
-        CreatedAt = DateTimeOffset.UtcNow,
-    });
+    history.Add(HistoryEntry.Create(
+        id: 0,
+        sourceName: "bench.mp4",
+        sourcePath: @"C:\videos\bench.mp4",
+        outputPath: @"C:\out\bench.mp4",
+        preset: CompressionPreset.Ultra,
+        format: OutputFormat.Mp4,
+        status: CompressionJobStatus.Completed,
+        originalSizeBytes: 1,
+        compressedSizeBytes: 1,
+        compressionRatioPercent: 0,
+        createdAt: DateTimeOffset.UtcNow));
 }));
 
 var settingsJson = """
