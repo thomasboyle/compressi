@@ -47,7 +47,7 @@
                 IsPaneOpen="True"
                 IsPaneToggleButtonVisible="False"
                 IsSettingsVisible="False"
-                OpenPaneLength="166"
+                OpenPaneLength="232"
                 PaneDisplayMode="Left"
                 SelectionChanged="NavView_SelectionChanged">
 

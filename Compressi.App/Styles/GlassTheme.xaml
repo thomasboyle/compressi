@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:media="using:Compressi_App.Media">
 
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="ms-appx:///Styles/Typography.xaml" />
@@ -104,20 +105,13 @@
     <SolidColorBrush x:Key="SecurityBannerBorderBrush" Color="{StaticResource SecurityBannerBorderColor}" />
     <SolidColorBrush x:Key="SecurityBannerFillBrush" Color="#FFE4E8D4" />
 
-    <!-- Pre-tiled dither fills (WinUI ImageBrush cannot repeat). Stretch=None keeps
-         absolute pattern scale identical across differently sized controls. -->
-    <ImageBrush
+    <!-- WinUI ImageBrush cannot repeat; TiledImageBrush wraps a small tile to any control size. -->
+    <media:TiledImageBrush
         x:Key="StippleFillBrush"
-        AlignmentX="Left"
-        AlignmentY="Top"
-        ImageSource="ms-appx:///Assets/ui/pattern-stipple-fill.png"
-        Stretch="None" />
-    <ImageBrush
+        Source="ms-appx:///Assets/ui/pattern-stipple-fill.png" />
+    <media:TiledImageBrush
         x:Key="StippleButtonBrush"
-        AlignmentX="Left"
-        AlignmentY="Top"
-        ImageSource="ms-appx:///Assets/ui/pattern-stipple-button.png"
-        Stretch="None" />
+        Source="ms-appx:///Assets/ui/pattern-stipple-button.png" />
 
     <Style x:Key="GlassInputComboBoxStyle" TargetType="ComboBox">
         <Setter Property="FontFamily" Value="{StaticResource AppPixelFontFamily}" />
