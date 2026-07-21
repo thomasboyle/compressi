@@ -527,13 +527,87 @@ public sealed partial class CompressPage : Page, IAppPage
             return _previewPlayer;
         }
 
+        var transport = new MediaTransportControls
+        {
+            IsCompact = true,
+            CornerRadius = new CornerRadius(4),
+            IsZoomButtonVisible = false,
+            IsPlaybackRateButtonVisible = false,
+            IsRepeatButtonVisible = false,
+            IsSkipBackwardButtonVisible = false,
+            IsSkipForwardButtonVisible = false,
+            IsNextTrackButtonVisible = false,
+            IsPreviousTrackButtonVisible = false,
+        };
+        transport.Loaded += PreviewTransport_Loaded;
+
         _previewPlayer = new MediaPlayerElement
         {
             AreTransportControlsEnabled = true,
             AutoPlay = false,
+            TransportControls = transport,
         };
         PreviewHost.Child = _previewPlayer;
         return _previewPlayer;
+    }
+
+    private void PreviewTransport_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MediaTransportControls transport)
+        {
+            return;
+        }
+
+        transport.Loaded -= PreviewTransport_Loaded;
+        ApplyPreviewTransportTypography(transport);
+    }
+
+    private static void ApplyPreviewTransportTypography(MediaTransportControls transport)
+    {
+        if (VisualTreeHelper.GetChildrenCount(transport) == 0
+            || VisualTreeHelper.GetChild(transport, 0) is not FrameworkElement root)
+        {
+            return;
+        }
+
+        var pixelFont = Application.Current.Resources["AppPixelFontFamily"] as FontFamily;
+        var ink = Application.Current.Resources["AppInkBrush"] as Brush;
+        var mutedInk = Application.Current.Resources["AppMutedInkBrush"] as Brush;
+
+        if (root.FindName("TimeElapsedElement") is TextBlock elapsed)
+        {
+            if (pixelFont is not null)
+            {
+                elapsed.FontFamily = pixelFont;
+            }
+
+            if (mutedInk is not null)
+            {
+                elapsed.Foreground = mutedInk;
+            }
+        }
+
+        if (root.FindName("TimeRemainingElement") is TextBlock remaining)
+        {
+            if (pixelFont is not null)
+            {
+                remaining.FontFamily = pixelFont;
+            }
+
+            if (mutedInk is not null)
+            {
+                remaining.Foreground = mutedInk;
+            }
+        }
+
+        if (ink is not null && root.FindName("ErrorTextBlock") is TextBlock error)
+        {
+            error.Foreground = ink;
+            if (pixelFont is not null)
+            {
+                error.FontFamily = pixelFont;
+            }
+        }
     }
 
     private async Task LoadPreviewAsync(string path)

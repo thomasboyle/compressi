@@ -19,6 +19,48 @@
             <SolidColorBrush x:Key="NavSelectionBrush" Color="#FFC2C3A2" />
             <SolidColorBrush x:Key="StippleFillBrush" Color="#FFC2C3A2" />
             <SolidColorBrush x:Key="StippleButtonBrush" Color="#FFA8AA8C" />
+
+            <!-- Media preview transport controls (replace WinUI acrylic/accent chrome) -->
+            <StaticResource x:Key="MediaTransportControlsPanelBackground" ResourceKey="GlassPanelFillBrush" />
+            <StaticResource x:Key="MediaTransportControlsFlyoutBackground" ResourceKey="GlassPanelFillBrush" />
+            <StaticResource x:Key="MediaTransportControlsBorderBrush" ResourceKey="GlassPanelBorderBrush" />
+            <StaticResource x:Key="MediaTransportControlsFillMediaText" ResourceKey="AppInkBrush" />
+            <StaticResource x:Key="MediaTransportControlsFillTimeElapsedText" ResourceKey="AppMutedInkBrush" />
+            <StaticResource x:Key="MediaTransportControlsThumbBorderBackground" ResourceKey="StippleButtonBrush" />
+            <FontFamily x:Key="MTCMediaFontFamily">ms-appx:///Assets/Fonts/PixelifySans-Regular.ttf#Pixelify Sans</FontFamily>
+
+            <StaticResource x:Key="AppBarButtonForeground" ResourceKey="AppInkBrush" />
+            <StaticResource x:Key="AppBarButtonForegroundPointerOver" ResourceKey="AppInkBrush" />
+            <StaticResource x:Key="AppBarButtonForegroundPressed" ResourceKey="AppMutedInkBrush" />
+            <StaticResource x:Key="AppBarButtonForegroundDisabled" ResourceKey="AppMutedInkBrush" />
+            <StaticResource x:Key="AppBarButtonBackgroundPointerOver" ResourceKey="StippleFillBrush" />
+            <StaticResource x:Key="AppBarButtonBackgroundPressed" ResourceKey="StippleButtonBrush" />
+
+            <StaticResource x:Key="AppBarToggleButtonForeground" ResourceKey="AppInkBrush" />
+            <StaticResource x:Key="AppBarToggleButtonForegroundPointerOver" ResourceKey="AppInkBrush" />
+            <StaticResource x:Key="AppBarToggleButtonForegroundPressed" ResourceKey="AppMutedInkBrush" />
+            <StaticResource x:Key="AppBarToggleButtonForegroundDisabled" ResourceKey="AppMutedInkBrush" />
+            <StaticResource x:Key="AppBarToggleButtonForegroundChecked" ResourceKey="AppInkBrush" />
+            <StaticResource x:Key="AppBarToggleButtonForegroundCheckedPointerOver" ResourceKey="AppInkBrush" />
+            <StaticResource x:Key="AppBarToggleButtonForegroundCheckedPressed" ResourceKey="AppMutedInkBrush" />
+            <StaticResource x:Key="AppBarToggleButtonBackgroundChecked" ResourceKey="StippleButtonBrush" />
+            <StaticResource x:Key="AppBarToggleButtonBackgroundCheckedPointerOver" ResourceKey="StippleFillBrush" />
+            <StaticResource x:Key="AppBarToggleButtonBackgroundCheckedPressed" ResourceKey="StippleButtonBrush" />
+            <StaticResource x:Key="AppBarToggleButtonBackgroundHighLightOverlayPointerOver" ResourceKey="StippleFillBrush" />
+            <StaticResource x:Key="AppBarToggleButtonBackgroundHighLightOverlayPressed" ResourceKey="StippleButtonBrush" />
+            <StaticResource x:Key="AppBarToggleButtonBackgroundHighLightOverlayCheckedPointerOver" ResourceKey="StippleFillBrush" />
+            <StaticResource x:Key="AppBarToggleButtonBackgroundHighLightOverlayCheckedPressed" ResourceKey="StippleButtonBrush" />
+
+            <SolidColorBrush x:Key="SliderThumbBackground" Color="#FF8F9A6E" />
+            <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="#FF7E895F" />
+            <SolidColorBrush x:Key="SliderThumbBackgroundPressed" Color="#FF6A744C" />
+            <SolidColorBrush x:Key="SliderTrackValueFill" Color="#FF8F9A6E" />
+            <SolidColorBrush x:Key="SliderTrackValueFillPointerOver" Color="#FF7E895F" />
+            <SolidColorBrush x:Key="SliderTrackValueFillPressed" Color="#FF6A744C" />
+            <SolidColorBrush x:Key="SliderTrackFill" Color="#33000000" />
+            <SolidColorBrush x:Key="SliderTrackFillPointerOver" Color="#40000000" />
+            <SolidColorBrush x:Key="SliderTrackFillPressed" Color="#40000000" />
+            <StaticResource x:Key="SliderOuterThumbBackground" ResourceKey="GlassPanelFillBrush" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Light">
             <SolidColorBrush x:Key="GlassPanelFillBrush" Color="#FFF7F0E2" />
@@ -30,6 +72,47 @@
             <SolidColorBrush x:Key="NavSelectionBrush" Color="#FFC2C3A2" />
             <SolidColorBrush x:Key="StippleFillBrush" Color="#FFC2C3A2" />
             <SolidColorBrush x:Key="StippleButtonBrush" Color="#FFA8AA8C" />
+
+            <StaticResource x:Key="MediaTransportControlsPanelBackground" ResourceKey="GlassPanelFillBrush" />
+            <StaticResource x:Key="MediaTransportControlsFlyoutBackground" ResourceKey="GlassPanelFillBrush" />
+            <StaticResource x:Key="MediaTransportControlsBorderBrush" ResourceKey="GlassPanelBorderBrush" />
+            <StaticResource x:Key="MediaTransportControlsFillMediaText" ResourceKey="AppInkBrush" />
+            <StaticResource x:Key="MediaTransportControlsFillTimeElapsedText" ResourceKey="AppMutedInkBrush" />
+            <StaticResource x:Key="MediaTransportControlsThumbBorderBackground" ResourceKey="StippleButtonBrush" />
+            <FontFamily x:Key="MTCMediaFontFamily">ms-appx:///Assets/Fonts/PixelifySans-Regular.ttf#Pixelify Sans</FontFamily>
+
+            <StaticResource x:Key="AppBarButtonForeground" ResourceKey="AppInkBrush" />
+            <StaticResource x:Key="AppBarButtonForegroundPointerOver" ResourceKey="AppInkBrush" />
+            <StaticResource x:Key="AppBarButtonForegroundPressed" ResourceKey="AppMutedInkBrush" />
+            <StaticResource x:Key="AppBarButtonForegroundDisabled" ResourceKey="AppMutedInkBrush" />
+            <StaticResource x:Key="AppBarButtonBackgroundPointerOver" ResourceKey="StippleFillBrush" />
+            <StaticResource x:Key="AppBarButtonBackgroundPressed" ResourceKey="StippleButtonBrush" />
+
+            <StaticResource x:Key="AppBarToggleButtonForeground" ResourceKey="AppInkBrush" />
+            <StaticResource x:Key="AppBarToggleButtonForegroundPointerOver" ResourceKey="AppInkBrush" />
+            <StaticResource x:Key="AppBarToggleButtonForegroundPressed" ResourceKey="AppMutedInkBrush" />
+            <StaticResource x:Key="AppBarToggleButtonForegroundDisabled" ResourceKey="AppMutedInkBrush" />
+            <StaticResource x:Key="AppBarToggleButtonForegroundChecked" ResourceKey="AppInkBrush" />
+            <StaticResource x:Key="AppBarToggleButtonForegroundCheckedPointerOver" ResourceKey="AppInkBrush" />
+            <StaticResource x:Key="AppBarToggleButtonForegroundCheckedPressed" ResourceKey="AppMutedInkBrush" />
+            <StaticResource x:Key="AppBarToggleButtonBackgroundChecked" ResourceKey="StippleButtonBrush" />
+            <StaticResource x:Key="AppBarToggleButtonBackgroundCheckedPointerOver" ResourceKey="StippleFillBrush" />
+            <StaticResource x:Key="AppBarToggleButtonBackgroundCheckedPressed" ResourceKey="StippleButtonBrush" />
+            <StaticResource x:Key="AppBarToggleButtonBackgroundHighLightOverlayPointerOver" ResourceKey="StippleFillBrush" />
+            <StaticResource x:Key="AppBarToggleButtonBackgroundHighLightOverlayPressed" ResourceKey="StippleButtonBrush" />
+            <StaticResource x:Key="AppBarToggleButtonBackgroundHighLightOverlayCheckedPointerOver" ResourceKey="StippleFillBrush" />
+            <StaticResource x:Key="AppBarToggleButtonBackgroundHighLightOverlayCheckedPressed" ResourceKey="StippleButtonBrush" />
+
+            <SolidColorBrush x:Key="SliderThumbBackground" Color="#FF8F9A6E" />
+            <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="#FF7E895F" />
+            <SolidColorBrush x:Key="SliderThumbBackgroundPressed" Color="#FF6A744C" />
+            <SolidColorBrush x:Key="SliderTrackValueFill" Color="#FF8F9A6E" />
+            <SolidColorBrush x:Key="SliderTrackValueFillPointerOver" Color="#FF7E895F" />
+            <SolidColorBrush x:Key="SliderTrackValueFillPressed" Color="#FF6A744C" />
+            <SolidColorBrush x:Key="SliderTrackFill" Color="#33000000" />
+            <SolidColorBrush x:Key="SliderTrackFillPointerOver" Color="#40000000" />
+            <SolidColorBrush x:Key="SliderTrackFillPressed" Color="#40000000" />
+            <StaticResource x:Key="SliderOuterThumbBackground" ResourceKey="GlassPanelFillBrush" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
             <SolidColorBrush x:Key="GlassPanelFillBrush" Color="#FF2A2924" />
@@ -41,6 +124,47 @@
             <SolidColorBrush x:Key="NavSelectionBrush" Color="#FF6F7358" />
             <SolidColorBrush x:Key="StippleFillBrush" Color="#FF6F7358" />
             <SolidColorBrush x:Key="StippleButtonBrush" Color="#FF5A5E48" />
+
+            <StaticResource x:Key="MediaTransportControlsPanelBackground" ResourceKey="GlassPanelFillBrush" />
+            <StaticResource x:Key="MediaTransportControlsFlyoutBackground" ResourceKey="GlassPanelFillBrush" />
+            <StaticResource x:Key="MediaTransportControlsBorderBrush" ResourceKey="GlassPanelBorderBrush" />
+            <StaticResource x:Key="MediaTransportControlsFillMediaText" ResourceKey="AppInkBrush" />
+            <StaticResource x:Key="MediaTransportControlsFillTimeElapsedText" ResourceKey="AppMutedInkBrush" />
+            <StaticResource x:Key="MediaTransportControlsThumbBorderBackground" ResourceKey="StippleButtonBrush" />
+            <FontFamily x:Key="MTCMediaFontFamily">ms-appx:///Assets/Fonts/PixelifySans-Regular.ttf#Pixelify Sans</FontFamily>
+
+            <StaticResource x:Key="AppBarButtonForeground" ResourceKey="AppInkBrush" />
+            <StaticResource x:Key="AppBarButtonForegroundPointerOver" ResourceKey="AppInkBrush" />
+            <StaticResource x:Key="AppBarButtonForegroundPressed" ResourceKey="AppMutedInkBrush" />
+            <StaticResource x:Key="AppBarButtonForegroundDisabled" ResourceKey="AppMutedInkBrush" />
+            <StaticResource x:Key="AppBarButtonBackgroundPointerOver" ResourceKey="StippleFillBrush" />
+            <StaticResource x:Key="AppBarButtonBackgroundPressed" ResourceKey="StippleButtonBrush" />
+
+            <StaticResource x:Key="AppBarToggleButtonForeground" ResourceKey="AppInkBrush" />
+            <StaticResource x:Key="AppBarToggleButtonForegroundPointerOver" ResourceKey="AppInkBrush" />
+            <StaticResource x:Key="AppBarToggleButtonForegroundPressed" ResourceKey="AppMutedInkBrush" />
+            <StaticResource x:Key="AppBarToggleButtonForegroundDisabled" ResourceKey="AppMutedInkBrush" />
+            <StaticResource x:Key="AppBarToggleButtonForegroundChecked" ResourceKey="AppInkBrush" />
+            <StaticResource x:Key="AppBarToggleButtonForegroundCheckedPointerOver" ResourceKey="AppInkBrush" />
+            <StaticResource x:Key="AppBarToggleButtonForegroundCheckedPressed" ResourceKey="AppMutedInkBrush" />
+            <StaticResource x:Key="AppBarToggleButtonBackgroundChecked" ResourceKey="StippleButtonBrush" />
+            <StaticResource x:Key="AppBarToggleButtonBackgroundCheckedPointerOver" ResourceKey="StippleFillBrush" />
+            <StaticResource x:Key="AppBarToggleButtonBackgroundCheckedPressed" ResourceKey="StippleButtonBrush" />
+            <StaticResource x:Key="AppBarToggleButtonBackgroundHighLightOverlayPointerOver" ResourceKey="StippleFillBrush" />
+            <StaticResource x:Key="AppBarToggleButtonBackgroundHighLightOverlayPressed" ResourceKey="StippleButtonBrush" />
+            <StaticResource x:Key="AppBarToggleButtonBackgroundHighLightOverlayCheckedPointerOver" ResourceKey="StippleFillBrush" />
+            <StaticResource x:Key="AppBarToggleButtonBackgroundHighLightOverlayCheckedPressed" ResourceKey="StippleButtonBrush" />
+
+            <SolidColorBrush x:Key="SliderThumbBackground" Color="#FF8F9A6E" />
+            <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="#FFA7B18F" />
+            <SolidColorBrush x:Key="SliderThumbBackgroundPressed" Color="#FF6A744C" />
+            <SolidColorBrush x:Key="SliderTrackValueFill" Color="#FF8F9A6E" />
+            <SolidColorBrush x:Key="SliderTrackValueFillPointerOver" Color="#FFA7B18F" />
+            <SolidColorBrush x:Key="SliderTrackValueFillPressed" Color="#FF6A744C" />
+            <SolidColorBrush x:Key="SliderTrackFill" Color="#33FFFFFF" />
+            <SolidColorBrush x:Key="SliderTrackFillPointerOver" Color="#40FFFFFF" />
+            <SolidColorBrush x:Key="SliderTrackFillPressed" Color="#40FFFFFF" />
+            <StaticResource x:Key="SliderOuterThumbBackground" ResourceKey="GlassPanelFillBrush" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 
