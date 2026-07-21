@@ -41,6 +41,7 @@
                             <Grid x:Name="DropZone" Grid.Row="1" MinHeight="194">
                                 <Rectangle
                                     x:Name="DropZoneOutline"
+                                    CacheMode="BitmapCache"
                                     RadiusX="10"
                                     RadiusY="10"
                                     Fill="{StaticResource DropZoneFillBrush}"
@@ -72,7 +73,7 @@
                                         Width="52"
                                         Height="52"
                                         IsHitTestVisible="False"
-                                        Source="ms-appx:///Assets/ui/icon-camera-add.png"
+                                        Source="{StaticResource IconCameraAddBitmap}"
                                         Stretch="Uniform" />
                                     <TextBlock
                                         x:Name="DropZoneText"
@@ -97,7 +98,7 @@
                                             <Image
                                                 Width="16"
                                                 Height="16"
-                                                Source="ms-appx:///Assets/ui/icon-folder.png"
+                                                Source="{StaticResource IconFolderBitmap}"
                                                 Stretch="Uniform" />
                                             <TextBlock Style="{StaticResource BodyTextStyle}" Text="Browse Files" />
                                         </StackPanel>
@@ -110,7 +111,7 @@
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Bottom"
                                     IsHitTestVisible="False"
-                                    Source="ms-appx:///Assets/ui/deco-leaf-sprig.png"
+                                    Source="{StaticResource DecoLeafSprigBitmap}"
                                     Stretch="Uniform" />
                             </Grid>
 
@@ -179,7 +180,7 @@
                                             Grid.Column="0"
                                             Width="32"
                                             Height="32"
-                                            Source="ms-appx:///Assets/ui/icon-camera-add.png"
+                                            Source="{StaticResource IconCameraAddSmallBitmap}"
                                             Stretch="Uniform" />
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                                             <TextBlock x:Name="FileNameText" Style="{StaticResource BodyTextStyle}" />
@@ -306,6 +307,7 @@
                                     Style="{StaticResource GlassDisclosureToggleStyle}" />
                                 <StackPanel
                                     x:Name="AdvancedOptionsPanel"
+                                    x:Load="False"
                                     Padding="0,8,0,0"
                                     Spacing="12"
                                     Visibility="Collapsed">
@@ -358,7 +360,11 @@
                                 </StackPanel>
                             </StackPanel>
 
-                            <StackPanel x:Name="EncodingProgressPanel" Spacing="8" Visibility="Collapsed">
+                            <StackPanel
+                                x:Name="EncodingProgressPanel"
+                                x:Load="False"
+                                Spacing="8"
+                                Visibility="Collapsed">
                                 <ProgressBar
                                     x:Name="EncodingProgressBar"
                                     Foreground="{StaticResource PrimaryBlueBrush}"
@@ -422,7 +428,7 @@
                                     <Image
                                         Width="18"
                                         Height="18"
-                                        Source="ms-appx:///Assets/ui/icon-leaf.png"
+                                        Source="{StaticResource IconLeafBitmap}"
                                         Stretch="Uniform" />
                                     <TextBlock
                                         FontWeight="{StaticResource FontWeightSemiBold}"
@@ -460,7 +466,7 @@
                                 Width="128"
                                 Height="112"
                                 HorizontalAlignment="Center"
-                                Source="ms-appx:///Assets/ui/results-empty.png"
+                                Source="{StaticResource ResultsEmptyBitmap}"
                                 Stretch="Uniform" />
 
                             <StackPanel HorizontalAlignment="Center" Spacing="6" MaxWidth="360">
@@ -499,7 +505,7 @@
                                     Width="26"
                                     Height="26"
                                     VerticalAlignment="Center"
-                                    Source="ms-appx:///Assets/ui/icon-shield.png"
+                                    Source="{StaticResource IconShieldBitmap}"
                                     Stretch="Uniform" />
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                                     <TextBlock

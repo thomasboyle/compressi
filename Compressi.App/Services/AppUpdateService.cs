@@ -26,9 +26,8 @@ public sealed class AppUpdateService
     private const string GitHubOwner = "thomasboyle";
     private const string GitHubRepo = "compressi";
     private const string SetupAssetName = "Compressi-Setup-x64.exe";
-    // Focus-driven rechecks only (no timer). Keep this short so a release published
-    // soon after the last check is still noticed; ETag makes repeats cheap.
-    private static readonly TimeSpan MinRecheckInterval = TimeSpan.FromMinutes(15);
+    // Focus-driven rechecks only (no timer). Launch uses force:true; activation respects this interval.
+    private static readonly TimeSpan MinRecheckInterval = TimeSpan.FromHours(6);
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     private readonly HttpClient _http = new()

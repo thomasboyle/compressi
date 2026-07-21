@@ -23,12 +23,13 @@
 
             <Border
                 x:Name="GrainOverlay"
+                CacheMode="BitmapCache"
                 CornerRadius="9"
                 IsHitTestVisible="False"
                 Opacity="0.28">
                 <Border.Background>
                     <ImageBrush
-                        ImageSource="ms-appx:///Assets/ui/texture-grain.png"
+                        ImageSource="{StaticResource GrainBitmap}"
                         Stretch="UniformToFill" />
                 </Border.Background>
             </Border>

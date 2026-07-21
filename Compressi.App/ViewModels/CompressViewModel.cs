@@ -990,6 +990,7 @@ public sealed class CompressViewModel : INotifyPropertyChanged
     {
         private readonly SynchronizationContext? _syncContext;
         private readonly Action<double?, long?, double?, bool> _handler;
+        private long _lastPostTicks;
 
         public EncodingProgressSink(
             SynchronizationContext? syncContext,
@@ -1005,6 +1006,19 @@ public sealed class CompressViewModel : INotifyPropertyChanged
             var sizeBytes = value.OutputSizeBytes;
             var speed = value.SpeedMultiplier;
             var finished = value.IsFinished;
+
+            // Drop surplus reports before marshalling so the UI thread is not flooded.
+            if (!finished)
+            {
+                var now = Stopwatch.GetTimestamp();
+                var last = Interlocked.Read(ref _lastPostTicks);
+                if (last != 0 && now - last < UiProgressIntervalTicks)
+                {
+                    return;
+                }
+
+                Interlocked.Exchange(ref _lastPostTicks, now);
+            }
 
             if (_syncContext is null)
             {

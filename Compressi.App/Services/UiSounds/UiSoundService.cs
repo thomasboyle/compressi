@@ -13,10 +13,10 @@ public static class UiSoundService
 
     private const int DefaultVolumePercent = 50;
 
-    private static readonly ConcurrentDictionary<UiSoundName, byte[]> Cache = new();
+    private static readonly ConcurrentDictionary<UiSoundName, byte[]> WavCache = new();
+    private static readonly ConcurrentDictionary<UiSoundName, InMemoryRandomAccessStream> StreamCache = new();
     private static readonly object PlayGate = new();
     private static MediaPlayer? _player;
-    private static InMemoryRandomAccessStream? _currentStream;
     private static int _enabled = 1;
     private static int _volumePercent = DefaultVolumePercent;
 
@@ -51,7 +51,7 @@ public static class UiSoundService
             {
                 try
                 {
-                    Cache.GetOrAdd(sound, static name => UiSoundSynthesizer.RenderWav(name));
+                    EnsureStream(sound);
                 }
                 catch
                 {
@@ -59,7 +59,6 @@ public static class UiSoundService
                 }
             }
 
-            // Touch MediaPlayer once off the hot path so first Play avoids construction latency.
             try
             {
                 lock (PlayGate)
@@ -99,20 +98,18 @@ public static class UiSoundService
                 return;
             }
 
-            var wav = Cache.GetOrAdd(sound, static name => UiSoundSynthesizer.RenderWav(name));
-            var stream = new InMemoryRandomAccessStream();
-            await stream.WriteAsync(wav.AsBuffer());
-            stream.Seek(0);
-
+            var cached = await Task.Run(() => EnsureStream(sound)).ConfigureAwait(true);
             var playerVolume = RelativeGain(volumePercent) / MaxVolumeMultiplier;
+
+            // MediaSource takes ownership of the stream it is given; clone so the cache stays valid.
+            var playStream = cached.CloneStream();
+            playStream.Seek(0);
 
             lock (PlayGate)
             {
                 var player = EnsurePlayer_NoLock();
-                DisposeCurrentStream_NoLock();
-                _currentStream = stream;
                 player.Volume = Math.Clamp(playerVolume, 0.0, 1.0);
-                player.Source = MediaSource.CreateFromStream(stream, "audio/wav");
+                player.Source = MediaSource.CreateFromStream(playStream, "audio/wav");
                 player.Play();
             }
         }
@@ -120,6 +117,18 @@ public static class UiSoundService
         {
             // Playback is best-effort; never break UI interactions.
         }
+    }
+
+    private static InMemoryRandomAccessStream EnsureStream(UiSoundName sound)
+    {
+        return StreamCache.GetOrAdd(sound, static name =>
+        {
+            var wav = WavCache.GetOrAdd(name, static n => UiSoundSynthesizer.RenderWav(n));
+            var stream = new InMemoryRandomAccessStream();
+            stream.WriteAsync(wav.AsBuffer()).AsTask().GetAwaiter().GetResult();
+            stream.Seek(0);
+            return stream;
+        });
     }
 
     private static MediaPlayer EnsurePlayer_NoLock()
@@ -150,7 +159,6 @@ public static class UiSoundService
             }
 
             sender.Source = null;
-            DisposeCurrentStream_NoLock();
         }
     }
 
@@ -164,26 +172,6 @@ public static class UiSoundService
             }
 
             sender.Source = null;
-            DisposeCurrentStream_NoLock();
         }
-    }
-
-    private static void DisposeCurrentStream_NoLock()
-    {
-        if (_currentStream is null)
-        {
-            return;
-        }
-
-        try
-        {
-            _currentStream.Dispose();
-        }
-        catch
-        {
-            // Ignore dispose races.
-        }
-
-        _currentStream = null;
     }
 }

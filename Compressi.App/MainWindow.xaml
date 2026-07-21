@@ -17,11 +17,12 @@
 
         <Border
             Grid.RowSpan="2"
+            CacheMode="BitmapCache"
             IsHitTestVisible="False"
             Opacity="0.32">
             <Border.Background>
                 <ImageBrush
-                    ImageSource="ms-appx:///Assets/ui/texture-grain.png"
+                    ImageSource="{StaticResource GrainBitmap}"
                     Stretch="UniformToFill" />
             </Border.Background>
         </Border>
@@ -81,24 +82,24 @@
 
                 <NavigationView.MenuItems>
                     <NavigationViewItem Content="Compress" Tag="Compress">
-                    <NavigationViewItem.Icon>
-                        <BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/ui/nav-compress.png" />
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-                <NavigationViewItem Content="History" Tag="History">
-                    <NavigationViewItem.Icon>
-                        <BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/ui/nav-history.png" />
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-                <NavigationViewItem Content="Settings" Tag="Settings">
-                    <NavigationViewItem.Icon>
-                        <BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/ui/nav-settings.png" />
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-                <NavigationViewItem Content="About" Tag="About">
-                    <NavigationViewItem.Icon>
-                        <BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/ui/nav-about.png" />
-                    </NavigationViewItem.Icon>
+                        <NavigationViewItem.Icon>
+                            <ImageIcon Source="{StaticResource NavCompressBitmap}" />
+                        </NavigationViewItem.Icon>
+                    </NavigationViewItem>
+                    <NavigationViewItem Content="History" Tag="History">
+                        <NavigationViewItem.Icon>
+                            <ImageIcon Source="{StaticResource NavHistoryBitmap}" />
+                        </NavigationViewItem.Icon>
+                    </NavigationViewItem>
+                    <NavigationViewItem Content="Settings" Tag="Settings">
+                        <NavigationViewItem.Icon>
+                            <ImageIcon Source="{StaticResource NavSettingsBitmap}" />
+                        </NavigationViewItem.Icon>
+                    </NavigationViewItem>
+                    <NavigationViewItem Content="About" Tag="About">
+                        <NavigationViewItem.Icon>
+                            <ImageIcon Source="{StaticResource NavAboutBitmap}" />
+                        </NavigationViewItem.Icon>
                     </NavigationViewItem>
                 </NavigationView.MenuItems>
 

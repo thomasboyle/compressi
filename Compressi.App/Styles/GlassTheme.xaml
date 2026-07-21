@@ -15,6 +15,7 @@
             <SolidColorBrush x:Key="GlassPanelSpecularBrush" Color="#00FFFFFF" />
             <SolidColorBrush x:Key="AppPageBackgroundBrush" Color="#FFE8DFD0" />
             <SolidColorBrush x:Key="AppInkBrush" Color="#FF2A3220" />
+            <SolidColorBrush x:Key="AppMutedInkBrush" Color="#BF2A3220" />
             <SolidColorBrush x:Key="NavSelectionBrush" Color="#FFC2C3A2" />
             <SolidColorBrush x:Key="StippleFillBrush" Color="#FFC2C3A2" />
             <SolidColorBrush x:Key="StippleButtonBrush" Color="#FFA8AA8C" />
@@ -25,6 +26,7 @@
             <SolidColorBrush x:Key="GlassPanelSpecularBrush" Color="#00FFFFFF" />
             <SolidColorBrush x:Key="AppPageBackgroundBrush" Color="#FFE8DFD0" />
             <SolidColorBrush x:Key="AppInkBrush" Color="#FF2A3220" />
+            <SolidColorBrush x:Key="AppMutedInkBrush" Color="#BF2A3220" />
             <SolidColorBrush x:Key="NavSelectionBrush" Color="#FFC2C3A2" />
             <SolidColorBrush x:Key="StippleFillBrush" Color="#FFC2C3A2" />
             <SolidColorBrush x:Key="StippleButtonBrush" Color="#FFA8AA8C" />
@@ -35,11 +37,75 @@
             <SolidColorBrush x:Key="GlassPanelSpecularBrush" Color="#00FFFFFF" />
             <SolidColorBrush x:Key="AppPageBackgroundBrush" Color="#FF1E1D1A" />
             <SolidColorBrush x:Key="AppInkBrush" Color="#FFE8E0D0" />
+            <SolidColorBrush x:Key="AppMutedInkBrush" Color="#BFE8E0D0" />
             <SolidColorBrush x:Key="NavSelectionBrush" Color="#FF6F7358" />
             <SolidColorBrush x:Key="StippleFillBrush" Color="#FF6F7358" />
             <SolidColorBrush x:Key="StippleButtonBrush" Color="#FF5A5E48" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
+
+    <!-- Shared decode: one GPU upload for all grain overlays / icons. -->
+    <BitmapImage
+        x:Key="GrainBitmap"
+        DecodePixelType="Logical"
+        DecodePixelWidth="768"
+        UriSource="ms-appx:///Assets/ui/texture-grain.png" />
+
+    <BitmapImage
+        x:Key="IconCameraAddBitmap"
+        DecodePixelType="Logical"
+        DecodePixelWidth="104"
+        UriSource="ms-appx:///Assets/ui/icon-camera-add.png" />
+    <BitmapImage
+        x:Key="IconCameraAddSmallBitmap"
+        DecodePixelType="Logical"
+        DecodePixelWidth="64"
+        UriSource="ms-appx:///Assets/ui/icon-camera-add.png" />
+    <BitmapImage
+        x:Key="IconFolderBitmap"
+        DecodePixelType="Logical"
+        DecodePixelWidth="32"
+        UriSource="ms-appx:///Assets/ui/icon-folder.png" />
+    <BitmapImage
+        x:Key="IconLeafBitmap"
+        DecodePixelType="Logical"
+        DecodePixelWidth="36"
+        UriSource="ms-appx:///Assets/ui/icon-leaf.png" />
+    <BitmapImage
+        x:Key="IconShieldBitmap"
+        DecodePixelType="Logical"
+        DecodePixelWidth="52"
+        UriSource="ms-appx:///Assets/ui/icon-shield.png" />
+    <BitmapImage
+        x:Key="DecoLeafSprigBitmap"
+        DecodePixelType="Logical"
+        DecodePixelWidth="188"
+        UriSource="ms-appx:///Assets/ui/deco-leaf-sprig.png" />
+    <BitmapImage
+        x:Key="ResultsEmptyBitmap"
+        DecodePixelType="Logical"
+        DecodePixelWidth="256"
+        UriSource="ms-appx:///Assets/ui/results-empty.png" />
+    <BitmapImage
+        x:Key="NavCompressBitmap"
+        DecodePixelType="Logical"
+        DecodePixelWidth="40"
+        UriSource="ms-appx:///Assets/ui/nav-compress.png" />
+    <BitmapImage
+        x:Key="NavHistoryBitmap"
+        DecodePixelType="Logical"
+        DecodePixelWidth="40"
+        UriSource="ms-appx:///Assets/ui/nav-history.png" />
+    <BitmapImage
+        x:Key="NavSettingsBitmap"
+        DecodePixelType="Logical"
+        DecodePixelWidth="40"
+        UriSource="ms-appx:///Assets/ui/nav-settings.png" />
+    <BitmapImage
+        x:Key="NavAboutBitmap"
+        DecodePixelType="Logical"
+        DecodePixelWidth="40"
+        UriSource="ms-appx:///Assets/ui/nav-about.png" />
 
     <CornerRadius x:Key="GlassPanelCornerRadius">10</CornerRadius>
     <CornerRadius x:Key="GlassButtonCornerRadius">4</CornerRadius>

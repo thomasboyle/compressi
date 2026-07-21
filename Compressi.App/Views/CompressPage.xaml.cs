@@ -34,6 +34,9 @@ public sealed partial class CompressPage : Page, IAppPage
     private UiZone _pendingUiZones;
     private bool _isActive;
     private bool _uiDirty;
+    private bool _dropZoneHovered;
+    private double _leftContentMinHeight;
+    private double _resultContentMinHeight;
     private string? _loadedPreviewPath;
     private string? _lastHeardError;
     private string? _lastHeardSourcePath;
@@ -70,6 +73,16 @@ public sealed partial class CompressPage : Page, IAppPage
     public void Activate()
     {
         _isActive = true;
+
+        // Preview Source is cleared on deactivate to free decoder memory.
+        if (ViewModel.Result is { } result
+            && ResultPanel is not null
+            && !string.Equals(_loadedPreviewPath, result.OutputPath, StringComparison.OrdinalIgnoreCase))
+        {
+            _loadedPreviewPath = result.OutputPath;
+            _ = LoadPreviewAsync(result.OutputPath);
+        }
+
         if (!_uiDirty)
         {
             return;
@@ -85,23 +98,61 @@ public sealed partial class CompressPage : Page, IAppPage
     public void Deactivate()
     {
         _isActive = false;
+        if (_previewPlayer?.MediaPlayer is { } player)
+        {
+            player.Pause();
+        }
+
+        // Drop decoder buffers while the page is off-screen; preview reloads on next result bind.
+        if (_previewPlayer is not null)
+        {
+            _previewPlayer.Source = null;
+        }
+
+        _loadedPreviewPath = null;
     }
 
     private void LeftScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         // Fill the viewport when the window grows; allow scroll when advanced options overflow.
-        if (e.NewSize.Height > 0)
+        // Defer the MinHeight write so we are not mutating layout mid-SizeChanged.
+        if (e.NewSize.Height <= 0 || Math.Abs(_leftContentMinHeight - e.NewSize.Height) < 0.5)
         {
-            LeftContentRoot.MinHeight = e.NewSize.Height;
+            return;
         }
+
+        var target = e.NewSize.Height;
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            if (Math.Abs(_leftContentMinHeight - target) < 0.5)
+            {
+                return;
+            }
+
+            _leftContentMinHeight = target;
+            LeftContentRoot.MinHeight = target;
+        });
     }
 
     private void ResultPanel_SizeChanged(object sender, SizeChangedEventArgs e)
     {
-        if (ResultContentRoot is not null && e.NewSize.Height > 0)
+        if (ResultContentRoot is null || e.NewSize.Height <= 0
+            || Math.Abs(_resultContentMinHeight - e.NewSize.Height) < 0.5)
         {
-            ResultContentRoot.MinHeight = e.NewSize.Height;
+            return;
         }
+
+        var target = e.NewSize.Height;
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            if (ResultContentRoot is null || Math.Abs(_resultContentMinHeight - target) < 0.5)
+            {
+                return;
+            }
+
+            _resultContentMinHeight = target;
+            ResultContentRoot.MinHeight = target;
+        });
     }
 
     private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -257,6 +308,11 @@ public sealed partial class CompressPage : Page, IAppPage
 
     private void UpdateProgressUi()
     {
+        if (EncodingProgressPanel is null)
+        {
+            return;
+        }
+
         EncodingProgressBar.Value = ViewModel.ProgressPercent;
         SetTextIfChanged(ElapsedText, ViewModel.ElapsedDisplay);
         SetTextIfChanged(RemainingText, ViewModel.RemainingDisplay);
@@ -284,6 +340,11 @@ public sealed partial class CompressPage : Page, IAppPage
 
     private void SyncAdvancedFieldsFromViewModel()
     {
+        if (AdvancedOptionsPanel is null)
+        {
+            return;
+        }
+
         ResolutionOverrideBox.Text = ViewModel.ResolutionOverride ?? string.Empty;
         FrameRateOverrideBox.Text = ViewModel.FrameRateOverride ?? string.Empty;
         AudioBitrateOverrideBox.Text = ViewModel.AudioBitrateOverride ?? string.Empty;
@@ -295,6 +356,11 @@ public sealed partial class CompressPage : Page, IAppPage
 
     private void SyncAdvancedFieldsToViewModel()
     {
+        if (AdvancedOptionsPanel is null)
+        {
+            return;
+        }
+
         ViewModel.ResolutionOverride = ResolutionOverrideBox.Text;
         ViewModel.FrameRateOverride = FrameRateOverrideBox.Text;
         ViewModel.AudioBitrateOverride = AudioBitrateOverrideBox.Text;
@@ -331,7 +397,17 @@ public sealed partial class CompressPage : Page, IAppPage
             StartCompressionButton.IsEnabled = ViewModel.CanStartCompression;
             StartCompressionButton.Visibility = ViewModel.ShowEncodingProgress ? Visibility.Collapsed : Visibility.Visible;
             CancelCompressionButton.Visibility = ViewModel.ShowEncodingProgress ? Visibility.Visible : Visibility.Collapsed;
-            EncodingProgressPanel.Visibility = ViewModel.ShowEncodingProgress ? Visibility.Visible : Visibility.Collapsed;
+
+            if (ViewModel.ShowEncodingProgress)
+            {
+                var progressPanel = EnsureEncodingProgressPanel();
+                progressPanel.Visibility = Visibility.Visible;
+                UpdateProgressUi();
+            }
+            else if (EncodingProgressPanel is not null)
+            {
+                EncodingProgressPanel.Visibility = Visibility.Collapsed;
+            }
         }
 
         if ((zones & UiZone.Preset) != 0)
@@ -359,7 +435,10 @@ public sealed partial class CompressPage : Page, IAppPage
 
         if ((zones & UiZone.OutputFolder) != 0)
         {
-            OutputFolderPathText.Text = $"Saving to: {ViewModel.OutputDirectoryDisplay}";
+            if (OutputFolderPathText is not null)
+            {
+                OutputFolderPathText.Text = $"Saving to: {ViewModel.OutputDirectoryDisplay}";
+            }
         }
 
         if ((zones & UiZone.FileChip) != 0)
@@ -419,6 +498,26 @@ public sealed partial class CompressPage : Page, IAppPage
 
         // Realizes the x:Load="False" ResultPanel subtree on first use.
         return (ScrollViewer)FindName(nameof(ResultPanel))!;
+    }
+
+    private StackPanel EnsureAdvancedOptionsPanel()
+    {
+        if (AdvancedOptionsPanel is not null)
+        {
+            return AdvancedOptionsPanel;
+        }
+
+        return (StackPanel)FindName(nameof(AdvancedOptionsPanel))!;
+    }
+
+    private StackPanel EnsureEncodingProgressPanel()
+    {
+        if (EncodingProgressPanel is not null)
+        {
+            return EncodingProgressPanel;
+        }
+
+        return (StackPanel)FindName(nameof(EncodingProgressPanel))!;
     }
 
     private MediaPlayerElement EnsurePreviewPlayer()
@@ -700,7 +799,23 @@ public sealed partial class CompressPage : Page, IAppPage
     private void AdvancedToggle_Click(object sender, RoutedEventArgs e)
     {
         var isOpen = AdvancedToggle.IsChecked == true;
-        AdvancedOptionsPanel.Visibility = isOpen ? Visibility.Visible : Visibility.Collapsed;
+        if (isOpen)
+        {
+            var panel = EnsureAdvancedOptionsPanel();
+            SyncAdvancedFieldsFromViewModel();
+            if (OutputFolderPathText is not null)
+            {
+                OutputFolderPathText.Text = $"Saving to: {ViewModel.OutputDirectoryDisplay}";
+            }
+
+            panel.Visibility = Visibility.Visible;
+        }
+        else if (AdvancedOptionsPanel is not null)
+        {
+            SyncAdvancedFieldsToViewModel();
+            AdvancedOptionsPanel.Visibility = Visibility.Collapsed;
+        }
+
         UiSoundService.Play(isOpen ? UiSoundName.Bloom : UiSoundName.Droplet);
     }
 
@@ -762,6 +877,12 @@ public sealed partial class CompressPage : Page, IAppPage
 
     private void ApplyDropZoneVisualState(bool isHovered)
     {
+        if (_dropZoneHovered == isHovered)
+        {
+            return;
+        }
+
+        _dropZoneHovered = isHovered;
         DropZoneOutline.Stroke = isHovered ? DropZoneHoverStroke : DropZoneDefaultStroke;
         DropZoneOutline.Fill = isHovered ? DropZoneHoverFill : DropZoneDefaultFill;
     }

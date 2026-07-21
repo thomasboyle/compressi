@@ -32,6 +32,8 @@ public sealed class HistoryEntry
 
     public required string RatioDisplay { get; init; }
 
+    public required string SizeSummaryDisplay { get; init; }
+
     public required string StatusDisplay { get; init; }
 
     public static HistoryEntry Create(
@@ -47,6 +49,10 @@ public sealed class HistoryEntry
         double compressionRatioPercent,
         DateTimeOffset createdAt)
     {
+        var originalSizeDisplay = VideoFile.FormatFileSize(originalSizeBytes);
+        var compressedSizeDisplay = VideoFile.FormatFileSize(compressedSizeBytes);
+        var ratioDisplay = $"{compressionRatioPercent:0.#}%";
+
         return new HistoryEntry
         {
             Id = id,
@@ -61,9 +67,10 @@ public sealed class HistoryEntry
             CompressionRatioPercent = compressionRatioPercent,
             CreatedAt = createdAt,
             CreatedAtDisplay = createdAt.ToLocalTime().ToString("g"),
-            OriginalSizeDisplay = VideoFile.FormatFileSize(originalSizeBytes),
-            CompressedSizeDisplay = VideoFile.FormatFileSize(compressedSizeBytes),
-            RatioDisplay = $"{compressionRatioPercent:0.#}%",
+            OriginalSizeDisplay = originalSizeDisplay,
+            CompressedSizeDisplay = compressedSizeDisplay,
+            RatioDisplay = ratioDisplay,
+            SizeSummaryDisplay = $"{originalSizeDisplay} → {compressedSizeDisplay} ({ratioDisplay})",
             StatusDisplay = FormatStatus(status),
         };
     }

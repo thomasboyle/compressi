@@ -51,8 +51,7 @@
         <Setter Property="FontFamily" Value="{StaticResource AppPixelFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeCaption}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightRegular}" />
-        <Setter Property="Foreground" Value="{ThemeResource AppInkBrush}" />
-        <Setter Property="Opacity" Value="0.75" />
+        <Setter Property="Foreground" Value="{ThemeResource AppMutedInkBrush}" />
     </Style>
 
     <Style x:Key="ResultStatValueStyle" TargetType="TextBlock">

@@ -10,11 +10,16 @@ namespace Compressi_App;
 
 public sealed partial class MainWindow : Window
 {
+    private static readonly TimeSpan PageEvictDelay = TimeSpan.FromMinutes(2);
+
     private readonly Dictionary<string, IAppPage> _pages = new(StringComparer.Ordinal);
     private readonly AppUpdateService _updateService = new();
+    private readonly DispatcherQueueTimer _pageEvictTimer;
     private bool _suppressSelectionChanged;
     private string? _currentTag;
+    private string? _pendingEvictTag;
     private bool _initialPageShown;
+    private bool _deferredChromeApplied;
 
     public MainWindow()
     {
@@ -27,20 +32,17 @@ public sealed partial class MainWindow : Window
         ConfigureSystemBackdrop();
         PerfProbe.MarkDuration("mainwindow_backdrop", backdropStart);
 
-        var titleBarStart = System.Diagnostics.Stopwatch.GetTimestamp();
-        ExtendsContentIntoTitleBar = true;
-        SetTitleBar(AppTitleBar);
-        PerfProbe.MarkDuration("mainwindow_titlebar", titleBarStart);
-
-        var iconStart = System.Diagnostics.Stopwatch.GetTimestamp();
-        AppWindow.SetIcon("Assets/AppIcon.ico");
-        PerfProbe.MarkDuration("mainwindow_seticon", iconStart);
-
+        // Title bar + icon are applied after first content paint (see ApplyDeferredChrome).
         var wireStart = System.Diagnostics.Stopwatch.GetTimestamp();
         App.HistoryViewModel.RerunRequested += (_, entry) => RerunCompression(entry);
         _updateService.StateChanged += (_, _) => DispatcherQueue.TryEnqueue(RefreshUpdateBubble);
         Activated += MainWindow_Activated;
         RefreshUpdateBubble();
+
+        _pageEvictTimer = DispatcherQueue.CreateTimer();
+        _pageEvictTimer.IsRepeating = false;
+        _pageEvictTimer.Interval = PageEvictDelay;
+        _pageEvictTimer.Tick += PageEvictTimer_Tick;
 
         _suppressSelectionChanged = true;
         NavView.SelectedItem = NavView.MenuItems[0];
@@ -63,6 +65,8 @@ public sealed partial class MainWindow : Window
         ShowPage("Compress", playSound: false);
         PerfProbe.MarkDuration("show_compress_page", showStart);
         PerfProbe.Mark("tti");
+
+        ApplyDeferredChrome();
 
         // Always revalidate on launch so a release published after the last session is noticed.
         DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () => _ = _updateService.CheckForUpdatesAsync(force: true));
@@ -88,10 +92,29 @@ public sealed partial class MainWindow : Window
         SystemBackdrop = null;
     }
 
+    private void ApplyDeferredChrome()
+    {
+        if (_deferredChromeApplied)
+        {
+            return;
+        }
+
+        _deferredChromeApplied = true;
+        var titleBarStart = System.Diagnostics.Stopwatch.GetTimestamp();
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(AppTitleBar);
+        PerfProbe.MarkDuration("mainwindow_titlebar", titleBarStart);
+
+        var iconStart = System.Diagnostics.Stopwatch.GetTimestamp();
+        AppWindow.SetIcon("Assets/AppIcon.ico");
+        PerfProbe.MarkDuration("mainwindow_seticon", iconStart);
+    }
+
     private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
     {
         if (args.WindowActivationState != WindowActivationState.Deactivated)
         {
+            // Non-forced: AppUpdateService enforces a multi-hour recheck interval.
             _ = _updateService.CheckForUpdatesAsync();
         }
     }
@@ -206,7 +229,10 @@ public sealed partial class MainWindow : Window
         if (_currentTag is not null && _pages.TryGetValue(_currentTag, out var previous))
         {
             previous.Deactivate();
+            SchedulePageEviction(_currentTag);
         }
+
+        CancelPageEviction(tag);
 
         var page = GetOrCreatePage(tag);
         ContentHost.Content = (UIElement)page;
@@ -216,6 +242,43 @@ public sealed partial class MainWindow : Window
         if (playSound)
         {
             UiSoundService.Play(UiSoundName.Page);
+        }
+    }
+
+    private void SchedulePageEviction(string tag)
+    {
+        // Keep Compress warm; soft-evict other pages after idle to reclaim visual-tree memory.
+        if (string.Equals(tag, "Compress", StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _pendingEvictTag = tag;
+        _pageEvictTimer.Stop();
+        _pageEvictTimer.Start();
+    }
+
+    private void CancelPageEviction(string tag)
+    {
+        if (string.Equals(_pendingEvictTag, tag, StringComparison.Ordinal))
+        {
+            _pageEvictTimer.Stop();
+            _pendingEvictTag = null;
+        }
+    }
+
+    private void PageEvictTimer_Tick(DispatcherQueueTimer sender, object args)
+    {
+        var tag = _pendingEvictTag;
+        _pendingEvictTag = null;
+        if (tag is null || string.Equals(_currentTag, tag, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        if (_pages.Remove(tag))
+        {
+            PerfProbe.Mark("page_evicted", tag);
         }
     }
 
