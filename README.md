@@ -22,6 +22,10 @@
   <img src="https://img.shields.io/badge/encoder-AV1%20%2B%20GPU-111827?style=flat-square" alt="AV1 + GPU" />
 </p>
 
+<p align="center">
+  <img src="docs/ui-screenshot.png" alt="Compressi UI — add a video, set output options, and review compression results" width="900" />
+</p>
+
 ## Features
 
 - **8 MB Target** — size videos for Discord and chat apps
