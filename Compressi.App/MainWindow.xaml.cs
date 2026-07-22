@@ -41,7 +41,8 @@ public sealed partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Called after Activate so the window can appear before Compress page XAML is parsed.
+    /// Builds the initial Compress UI and shell chrome before <see cref="Window.Activate"/>.
+    /// Calling this first avoids a blank/white first frame.
     /// </summary>
     public void ShowInitialPage()
     {
@@ -56,6 +57,7 @@ public sealed partial class MainWindow : Window
         PerfProbe.MarkDuration("show_compress_page", showStart);
         PerfProbe.Mark("tti");
 
+        // Title bar + icon must be applied before Activate; deferring them caused a white flash.
         ApplyDeferredShell();
 
         // Always revalidate on launch so a release published after the last session is noticed.
@@ -117,6 +119,13 @@ public sealed partial class MainWindow : Window
         PerfProbe.MarkDuration("mainwindow_deferred_wireup", wireStart);
 
         var titleBarStart = System.Diagnostics.Stopwatch.GetTimestamp();
+        // Match paper surface so any pre-composition HWND chrome is cream, not white.
+        var paper = Windows.UI.Color.FromArgb(0xFF, 0xE8, 0xDF, 0xD0);
+        var titleBar = AppWindow.TitleBar;
+        titleBar.BackgroundColor = paper;
+        titleBar.InactiveBackgroundColor = paper;
+        titleBar.ButtonBackgroundColor = paper;
+        titleBar.ButtonInactiveBackgroundColor = paper;
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
         PerfProbe.MarkDuration("mainwindow_titlebar", titleBarStart);

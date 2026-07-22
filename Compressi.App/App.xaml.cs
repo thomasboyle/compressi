@@ -51,11 +51,15 @@ public partial class App : Application
         MainWindow = new MainWindow();
         PerfProbe.MarkDuration("main_window_ctor", windowStart);
 
-        // Activate shell before parsing Compress page XAML so the window can appear sooner.
+        // Theme needs MainWindow.Content; the earlier call was a no-op for the window root.
+        ThemeService.ApplyTheme(settings.Theme);
+
+        // Build Compress content + title-bar chrome before Activate so the first
+        // visible frame is not an empty/white shell.
+        MainWindow.ShowInitialPage();
+
         MainWindow.Activate();
         PerfProbe.Mark("main_window_activate");
-
-        MainWindow.ShowInitialPage();
 
         // Notification registration and sound synthesis are not required for first paint.
         MainWindow.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, InitializeDeferredServices);
