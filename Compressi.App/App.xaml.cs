@@ -54,12 +54,13 @@ public partial class App : Application
         // Theme needs MainWindow.Content; the earlier call was a no-op for the window root.
         ThemeService.ApplyTheme(settings.Theme);
 
-        // Build Compress content + title-bar chrome before Activate so the first
-        // visible frame is not an empty/white shell.
+        // Build Compress content + title-bar chrome before Activate.
         MainWindow.ShowInitialPage();
 
+        // Activate while DWM-cloaked, then reveal after the first composition frame.
         MainWindow.Activate();
         PerfProbe.Mark("main_window_activate");
+        MainWindow.RevealAfterFirstFrame();
 
         // Notification registration and sound synthesis are not required for first paint.
         MainWindow.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, InitializeDeferredServices);

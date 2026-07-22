@@ -5,6 +5,7 @@ using Compressi_App.Views;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 
 namespace Compressi_App;
 
@@ -20,6 +21,9 @@ public sealed partial class MainWindow : Window
     private string? _pendingEvictTag;
     private bool _initialPageShown;
     private bool _deferredShellApplied;
+    private bool _revealArmed;
+    private DispatcherQueueTimer? _revealFailsafeTimer;
+    private bool _revealed;
 
     public MainWindow()
     {
@@ -27,6 +31,9 @@ public sealed partial class MainWindow : Window
         InitializeComponent();
         PerfProbe.MarkDuration("mainwindow_initialize_component", t0);
         AppWindow.Resize(new Windows.Graphics.SizeInt32(1331, 735));
+
+        // Cloak before any Activate so DWM never presents the default white HWND frame.
+        WindowStartupCloak.SetCloaked(this, cloaked: true);
 
         var backdropStart = System.Diagnostics.Stopwatch.GetTimestamp();
         ConfigureSystemBackdrop();
@@ -42,7 +49,6 @@ public sealed partial class MainWindow : Window
 
     /// <summary>
     /// Builds the initial Compress UI and shell chrome before <see cref="Window.Activate"/>.
-    /// Calling this first avoids a blank/white first frame.
     /// </summary>
     public void ShowInitialPage()
     {
@@ -62,6 +68,55 @@ public sealed partial class MainWindow : Window
 
         // Always revalidate on launch so a release published after the last session is noticed.
         DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () => _ = UpdateService.CheckForUpdatesAsync(force: true));
+    }
+
+    /// <summary>
+    /// Call after Activate while cloaked. Uncloaks on the first composition frame so
+    /// the first visible pixels are painted XAML, not the default window brush.
+    /// </summary>
+    public void RevealAfterFirstFrame()
+    {
+        if (_revealArmed)
+        {
+            return;
+        }
+
+        _revealArmed = true;
+        CompositionTarget.Rendering += OnFirstCompositionFrame;
+
+        // Failsafe: never leave the window permanently cloaked if rendering is delayed.
+        _revealFailsafeTimer = DispatcherQueue.CreateTimer();
+        _revealFailsafeTimer.IsRepeating = false;
+        _revealFailsafeTimer.Interval = TimeSpan.FromSeconds(2);
+        _revealFailsafeTimer.Tick += (_, _) => RevealNow();
+        _revealFailsafeTimer.Start();
+    }
+
+    private void OnFirstCompositionFrame(object? sender, object e)
+    {
+        CompositionTarget.Rendering -= OnFirstCompositionFrame;
+
+        // Let layout/render callbacks queued at Normal finish before DWM presents the window.
+        DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, RevealNow);
+    }
+
+    private void RevealNow()
+    {
+        if (_revealed)
+        {
+            return;
+        }
+
+        _revealed = true;
+        CompositionTarget.Rendering -= OnFirstCompositionFrame;
+        if (_revealFailsafeTimer is not null)
+        {
+            _revealFailsafeTimer.Stop();
+            _revealFailsafeTimer = null;
+        }
+
+        WindowStartupCloak.SetCloaked(this, cloaked: false);
+        PerfProbe.Mark("window_revealed");
     }
 
     public void NavigateToCompress()
