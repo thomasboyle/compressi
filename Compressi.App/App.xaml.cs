@@ -11,19 +11,22 @@ public partial class App : Application
 {
     private static readonly HistoryStore SharedHistoryStore = new();
     private static readonly SettingsStore SharedSettingsStore = new();
+    private static HistoryViewModel? _historyViewModel;
 
     public static MainWindow? MainWindow { get; private set; }
 
     public static CompressViewModel CompressViewModel { get; } = CreateCompressViewModel();
 
-    public static HistoryViewModel HistoryViewModel { get; } = new(SharedHistoryStore);
+    public static HistoryViewModel HistoryViewModel =>
+        _historyViewModel ??= new HistoryViewModel(SharedHistoryStore);
 
     public static SettingsViewModel SettingsViewModel { get; } = CreateSettingsViewModel();
 
     static App()
     {
         PerfProbe.Mark("static_ctor_begin");
-        CompressViewModel.HistoryChanged += (_, _) => HistoryViewModel.MarkDirty();
+        // Do not touch HistoryViewModel here — keep it off the Compress TTI path.
+        CompressViewModel.HistoryChanged += (_, _) => _historyViewModel?.MarkDirty();
         PerfProbe.Mark("static_ctor_end");
     }
 
@@ -38,6 +41,7 @@ public partial class App : Application
     {
         PerfProbe.Mark("on_launched_begin");
 
+        // SettingsViewModel already loaded the snapshot during static init; reuse for theme/sounds.
         var settings = SettingsViewModel.Settings;
         ThemeService.ApplyTheme(settings.Theme);
         UiSoundService.IsEnabled = settings.UiSoundsEnabled;
@@ -74,9 +78,10 @@ public partial class App : Application
     private static CompressViewModel CreateCompressViewModel()
     {
         var t0 = System.Diagnostics.Stopwatch.GetTimestamp();
+        // Probe/encode path resolution (File.Exists) stays off TTI until first probe/encode.
         var vm = new CompressViewModel(
-            new MediaProbeService(),
-            new FfmpegEncodingService(),
+            new Lazy<IMediaProbeService>(() => new MediaProbeService()),
+            new Lazy<IEncodingService>(() => new FfmpegEncodingService()),
             SharedHistoryStore,
             SharedSettingsStore);
         PerfProbe.MarkDuration("create_compress_viewmodel", t0);

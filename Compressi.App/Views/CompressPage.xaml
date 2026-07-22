@@ -445,7 +445,10 @@
         <controls:GlassPanel Grid.Column="1">
             <controls:GlassPanel.PanelContent>
                 <Grid>
-                    <Grid x:Name="EmptyCompletePanel">
+                    <!-- Deferred until after tti: results-empty bitmap + security banner. -->
+                    <Grid
+                        x:Name="EmptyCompletePanel"
+                        x:Load="False">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />

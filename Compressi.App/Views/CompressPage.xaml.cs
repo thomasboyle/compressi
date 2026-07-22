@@ -4,6 +4,7 @@ using Compressi.Core.Services;
 using Compressi_App.Services;
 using Compressi_App.Services.UiSounds;
 using Compressi_App.ViewModels;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -82,6 +83,9 @@ public sealed partial class CompressPage : Page, IAppPage
             _loadedPreviewPath = result.OutputPath;
             _ = LoadPreviewAsync(result.OutputPath);
         }
+
+        // Empty-results chrome is x:Load deferred; realize after tti via Low priority.
+        ScheduleEmptyCompletePanelIfNeeded();
 
         if (!_uiDirty)
         {
@@ -457,7 +461,21 @@ public sealed partial class CompressPage : Page, IAppPage
 
         if ((zones & UiZone.Result) != 0)
         {
-            EmptyCompletePanel.Visibility = ViewModel.ShowEmptyCompleteState ? Visibility.Visible : Visibility.Collapsed;
+            if (ViewModel.ShowEmptyCompleteState)
+            {
+                if (EmptyCompletePanel is not null)
+                {
+                    EmptyCompletePanel.Visibility = Visibility.Visible;
+                }
+                else if (_isActive)
+                {
+                    ScheduleEmptyCompletePanelIfNeeded();
+                }
+            }
+            else if (EmptyCompletePanel is not null)
+            {
+                EmptyCompletePanel.Visibility = Visibility.Collapsed;
+            }
 
             if (ViewModel.HasResult)
             {
@@ -487,6 +505,34 @@ public sealed partial class CompressPage : Page, IAppPage
                 }
             }
         }
+    }
+
+    private void ScheduleEmptyCompletePanelIfNeeded()
+    {
+        if (!ViewModel.ShowEmptyCompleteState || EmptyCompletePanel is not null)
+        {
+            return;
+        }
+
+        DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () =>
+        {
+            if (!_isActive || !ViewModel.ShowEmptyCompleteState)
+            {
+                return;
+            }
+
+            EnsureEmptyCompletePanel().Visibility = Visibility.Visible;
+        });
+    }
+
+    private Grid EnsureEmptyCompletePanel()
+    {
+        if (EmptyCompletePanel is not null)
+        {
+            return EmptyCompletePanel;
+        }
+
+        return (Grid)FindName(nameof(EmptyCompletePanel))!;
     }
 
     private ScrollViewer EnsureResultPanel()

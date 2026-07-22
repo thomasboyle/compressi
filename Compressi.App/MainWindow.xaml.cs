@@ -13,13 +13,13 @@ public sealed partial class MainWindow : Window
     private static readonly TimeSpan PageEvictDelay = TimeSpan.FromMinutes(2);
 
     private readonly Dictionary<string, IAppPage> _pages = new(StringComparer.Ordinal);
-    private readonly AppUpdateService _updateService = new();
-    private readonly DispatcherQueueTimer _pageEvictTimer;
+    private AppUpdateService? _updateService;
+    private DispatcherQueueTimer? _pageEvictTimer;
     private bool _suppressSelectionChanged;
     private string? _currentTag;
     private string? _pendingEvictTag;
     private bool _initialPageShown;
-    private bool _deferredChromeApplied;
+    private bool _deferredShellApplied;
 
     public MainWindow()
     {
@@ -32,18 +32,8 @@ public sealed partial class MainWindow : Window
         ConfigureSystemBackdrop();
         PerfProbe.MarkDuration("mainwindow_backdrop", backdropStart);
 
-        // Title bar + icon are applied after first content paint (see ApplyDeferredChrome).
+        // History/update/timer/titlebar/grain are applied after tti (see ApplyDeferredShell).
         var wireStart = System.Diagnostics.Stopwatch.GetTimestamp();
-        App.HistoryViewModel.RerunRequested += (_, entry) => RerunCompression(entry);
-        _updateService.StateChanged += (_, _) => DispatcherQueue.TryEnqueue(RefreshUpdateBubble);
-        Activated += MainWindow_Activated;
-        RefreshUpdateBubble();
-
-        _pageEvictTimer = DispatcherQueue.CreateTimer();
-        _pageEvictTimer.IsRepeating = false;
-        _pageEvictTimer.Interval = PageEvictDelay;
-        _pageEvictTimer.Tick += PageEvictTimer_Tick;
-
         _suppressSelectionChanged = true;
         NavView.SelectedItem = NavView.MenuItems[0];
         _suppressSelectionChanged = false;
@@ -66,10 +56,10 @@ public sealed partial class MainWindow : Window
         PerfProbe.MarkDuration("show_compress_page", showStart);
         PerfProbe.Mark("tti");
 
-        ApplyDeferredChrome();
+        ApplyDeferredShell();
 
         // Always revalidate on launch so a release published after the last session is noticed.
-        DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () => _ = _updateService.CheckForUpdatesAsync(force: true));
+        DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () => _ = UpdateService.CheckForUpdatesAsync(force: true));
     }
 
     public void NavigateToCompress()
@@ -86,20 +76,46 @@ public sealed partial class MainWindow : Window
         App.CompressViewModel.RequestRerun(entry);
     }
 
+    private AppUpdateService UpdateService =>
+        _updateService ?? throw new InvalidOperationException("Deferred shell has not been applied yet.");
+
+    private DispatcherQueueTimer PageEvictTimer =>
+        _pageEvictTimer ?? throw new InvalidOperationException("Deferred shell has not been applied yet.");
+
     private void ConfigureSystemBackdrop()
     {
         // Cottagecore paper UI uses a solid cream surface; skip system acrylic/mica.
         SystemBackdrop = null;
     }
 
-    private void ApplyDeferredChrome()
+    private void ApplyDeferredShell()
     {
-        if (_deferredChromeApplied)
+        if (_deferredShellApplied)
         {
             return;
         }
 
-        _deferredChromeApplied = true;
+        _deferredShellApplied = true;
+
+        // Realizes the x:Load="False" grain overlay (bitmap decode off the tti path).
+        if (Content is FrameworkElement root)
+        {
+            _ = root.FindName(nameof(GrainOverlay));
+        }
+
+        var wireStart = System.Diagnostics.Stopwatch.GetTimestamp();
+        _updateService = new AppUpdateService();
+        App.HistoryViewModel.RerunRequested += (_, entry) => RerunCompression(entry);
+        _updateService.StateChanged += (_, _) => DispatcherQueue.TryEnqueue(RefreshUpdateBubble);
+        Activated += MainWindow_Activated;
+        RefreshUpdateBubble();
+
+        _pageEvictTimer = DispatcherQueue.CreateTimer();
+        _pageEvictTimer.IsRepeating = false;
+        _pageEvictTimer.Interval = PageEvictDelay;
+        _pageEvictTimer.Tick += PageEvictTimer_Tick;
+        PerfProbe.MarkDuration("mainwindow_deferred_wireup", wireStart);
+
         var titleBarStart = System.Diagnostics.Stopwatch.GetTimestamp();
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
@@ -115,14 +131,15 @@ public sealed partial class MainWindow : Window
         if (args.WindowActivationState != WindowActivationState.Deactivated)
         {
             // Non-forced: AppUpdateService enforces a multi-hour recheck interval.
-            _ = _updateService.CheckForUpdatesAsync();
+            _ = UpdateService.CheckForUpdatesAsync();
         }
     }
 
     private void RefreshUpdateBubble()
     {
-        var status = _updateService.Status;
-        var update = _updateService.AvailableUpdate;
+        var updateService = UpdateService;
+        var status = updateService.Status;
+        var update = updateService.AvailableUpdate;
         var show = update is not null
             || status is AppUpdateStatus.Downloading or AppUpdateStatus.Installing;
 
@@ -136,12 +153,12 @@ public sealed partial class MainWindow : Window
         UpdateBubbleProgress.Visibility = status is AppUpdateStatus.Downloading or AppUpdateStatus.Installing
             ? Visibility.Visible
             : Visibility.Collapsed;
-        UpdateBubbleProgress.Value = _updateService.DownloadProgress;
+        UpdateBubbleProgress.Value = updateService.DownloadProgress;
         UpdateBubbleDismissButton.IsEnabled = status is not AppUpdateStatus.Downloading and not AppUpdateStatus.Installing;
         UpdateBubbleActionButton.IsEnabled = status is AppUpdateStatus.Available or AppUpdateStatus.Failed;
         UpdateBubbleActionButton.Content = status switch
         {
-            AppUpdateStatus.Downloading => $"Downloading {_updateService.DownloadProgress:0}%",
+            AppUpdateStatus.Downloading => $"Downloading {updateService.DownloadProgress:0}%",
             AppUpdateStatus.Installing => "Installing...",
             AppUpdateStatus.Failed => "Retry install",
             _ => "Install update",
@@ -151,12 +168,12 @@ public sealed partial class MainWindow : Window
     private void UpdateBubbleDismissButton_Click(object sender, RoutedEventArgs e)
     {
         UiSoundService.Play(UiSoundName.Release);
-        _updateService.DismissAvailableUpdate();
+        UpdateService.DismissAvailableUpdate();
     }
 
     private async void UpdateBubbleActionButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_updateService.Status is AppUpdateStatus.Downloading or AppUpdateStatus.Installing)
+        if (UpdateService.Status is AppUpdateStatus.Downloading or AppUpdateStatus.Installing)
         {
             return;
         }
@@ -164,7 +181,7 @@ public sealed partial class MainWindow : Window
         UiSoundService.Play(UiSoundName.Press);
         try
         {
-            await _updateService.DownloadAndInstallAsync().ConfigureAwait(true);
+            await UpdateService.DownloadAndInstallAsync().ConfigureAwait(true);
             Close();
         }
         catch
@@ -254,15 +271,16 @@ public sealed partial class MainWindow : Window
         }
 
         _pendingEvictTag = tag;
-        _pageEvictTimer.Stop();
-        _pageEvictTimer.Start();
+        var timer = PageEvictTimer;
+        timer.Stop();
+        timer.Start();
     }
 
     private void CancelPageEviction(string tag)
     {
         if (string.Equals(_pendingEvictTag, tag, StringComparison.Ordinal))
         {
-            _pageEvictTimer.Stop();
+            _pageEvictTimer?.Stop();
             _pendingEvictTag = null;
         }
     }

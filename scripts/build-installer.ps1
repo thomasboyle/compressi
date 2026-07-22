@@ -20,8 +20,8 @@ param(
 
 # CI and local both prioritize download size for auto-update.
 if (-not $PSBoundParameters.ContainsKey('ReadyToRun')) {
-    # ReadyToRun speeds cold start but inflates the installer; keep it off for release packs.
-    $ReadyToRun = $false
+    # ReadyToRun matches cold-launch measurement claims (baseline publishes with R2R=true).
+    $ReadyToRun = $true
 }
 if (-not $PSBoundParameters.ContainsKey('Compression')) {
     # Prefer smallest download size for auto-update (installer is mostly native binaries).

@@ -11,8 +11,8 @@ public sealed class CompressViewModel : INotifyPropertyChanged
 {
     private static readonly long UiProgressIntervalTicks = Stopwatch.Frequency / 10;
 
-    private readonly IMediaProbeService _probeService;
-    private readonly IEncodingService _encodingService;
+    private readonly Lazy<IMediaProbeService> _probeService;
+    private readonly Lazy<IEncodingService> _encodingService;
     private readonly HistoryStore _historyStore;
     private readonly SettingsStore _settingsStore;
     private CancellationTokenSource? _encodeCts;
@@ -48,13 +48,30 @@ public sealed class CompressViewModel : INotifyPropertyChanged
     private readonly HashSet<string> _batchedPropertyNames = new(StringComparer.Ordinal);
 
     public CompressViewModel()
-        : this(new MediaProbeService(), new FfmpegEncodingService(), new HistoryStore(), new SettingsStore())
+        : this(
+            new Lazy<IMediaProbeService>(() => new MediaProbeService()),
+            new Lazy<IEncodingService>(() => new FfmpegEncodingService()),
+            new HistoryStore(),
+            new SettingsStore())
     {
     }
 
     public CompressViewModel(
         IMediaProbeService probeService,
         IEncodingService encodingService,
+        HistoryStore historyStore,
+        SettingsStore settingsStore)
+        : this(
+            new Lazy<IMediaProbeService>(() => probeService),
+            new Lazy<IEncodingService>(() => encodingService),
+            historyStore,
+            settingsStore)
+    {
+    }
+
+    public CompressViewModel(
+        Lazy<IMediaProbeService> probeService,
+        Lazy<IEncodingService> encodingService,
         HistoryStore historyStore,
         SettingsStore settingsStore)
     {
@@ -446,7 +463,7 @@ public sealed class CompressViewModel : INotifyPropertyChanged
 
         try
         {
-            var probed = await _probeService.ProbeAsync(filePath).ConfigureAwait(true);
+            var probed = await _probeService.Value.ProbeAsync(filePath).ConfigureAwait(true);
             using (BatchPropertyChanged())
             {
                 SourceFile = probed;
@@ -537,7 +554,7 @@ public sealed class CompressViewModel : INotifyPropertyChanged
                 ApplyProgress(percent, sizeBytes, speed, finished, encodeStarted);
             });
 
-            var result = await _encodingService
+            var result = await _encodingService.Value
                 .EncodeAsync(job, progress, _encodeCts.Token)
                 .ConfigureAwait(true);
             using (BatchPropertyChanged())

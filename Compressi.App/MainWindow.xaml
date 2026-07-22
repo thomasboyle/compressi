@@ -15,7 +15,10 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <!-- Decorative grain decode deferred until after tti (see ApplyDeferredShell). -->
         <Border
+            x:Name="GrainOverlay"
+            x:Load="False"
             Grid.RowSpan="2"
             CacheMode="BitmapCache"
             IsHitTestVisible="False"
