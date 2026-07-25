@@ -30,11 +30,13 @@
             </Border.Background>
         </Border>
 
+        <!-- Collapsed until ExtendsContentIntoTitleBar runs post-reveal; avoids stacked chrome. -->
         <TitleBar
             x:Name="AppTitleBar"
             Height="40"
             Title="Compressi"
-            Foreground="{ThemeResource AppInkBrush}" />
+            Foreground="{ThemeResource AppInkBrush}"
+            Visibility="Collapsed" />
 
         <Border
             Grid.Row="1"

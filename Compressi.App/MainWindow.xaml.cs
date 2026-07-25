@@ -5,7 +5,6 @@ using Compressi_App.Views;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 
 namespace Compressi_App;
 
@@ -20,9 +19,7 @@ public sealed partial class MainWindow : Window
     private string? _currentTag;
     private string? _pendingEvictTag;
     private bool _initialPageShown;
-    private bool _deferredShellApplied;
-    private bool _revealArmed;
-    private DispatcherQueueTimer? _revealFailsafeTimer;
+    private bool _shellChromeApplied;
     private bool _revealed;
 
     public MainWindow()
@@ -33,13 +30,14 @@ public sealed partial class MainWindow : Window
         AppWindow.Resize(new Windows.Graphics.SizeInt32(1331, 735));
 
         // Cloak before any Activate so DWM never presents the default white HWND frame.
+        // Cream class brush covers any transient HWND erase if cloak is briefly ineffective.
         WindowStartupCloak.SetCloaked(this, cloaked: true);
+        WindowStartupCloak.ApplyPaperBackground(this);
 
         var backdropStart = System.Diagnostics.Stopwatch.GetTimestamp();
         ConfigureSystemBackdrop();
         PerfProbe.MarkDuration("mainwindow_backdrop", backdropStart);
 
-        // History/update/timer/titlebar/grain are applied after tti (see ApplyDeferredShell).
         var wireStart = System.Diagnostics.Stopwatch.GetTimestamp();
         _suppressSelectionChanged = true;
         NavView.SelectedItem = NavView.MenuItems[0];
@@ -48,7 +46,7 @@ public sealed partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Builds the initial Compress UI and shell chrome before <see cref="Window.Activate"/>.
+    /// Builds the initial Compress UI tree (full interactive page, no skeleton).
     /// </summary>
     public void ShowInitialPage()
     {
@@ -62,45 +60,14 @@ public sealed partial class MainWindow : Window
         ShowPage("Compress", playSound: false);
         PerfProbe.MarkDuration("show_compress_page", showStart);
         PerfProbe.Mark("tti");
-
-        // Title bar + icon must be applied before Activate; deferring them caused a white flash.
-        ApplyDeferredShell();
-
-        // Always revalidate on launch so a release published after the last session is noticed.
-        DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () => _ = UpdateService.CheckForUpdatesAsync(force: true));
     }
 
     /// <summary>
-    /// Call after Activate while cloaked. Uncloaks on the first composition frame so
-    /// the first visible pixels are painted XAML, not the default window brush.
+    /// Uncloaks immediately. Call only after the full Compress UI tree is in place.
+    /// Title-bar customization runs right after via High priority — first touch of that
+    /// WinUI surface is ~130 ms and must not block DWM uncloak.
     /// </summary>
-    public void RevealAfterFirstFrame()
-    {
-        if (_revealArmed)
-        {
-            return;
-        }
-
-        _revealArmed = true;
-        CompositionTarget.Rendering += OnFirstCompositionFrame;
-
-        // Failsafe: never leave the window permanently cloaked if rendering is delayed.
-        _revealFailsafeTimer = DispatcherQueue.CreateTimer();
-        _revealFailsafeTimer.IsRepeating = false;
-        _revealFailsafeTimer.Interval = TimeSpan.FromSeconds(2);
-        _revealFailsafeTimer.Tick += (_, _) => RevealNow();
-        _revealFailsafeTimer.Start();
-    }
-
-    private void OnFirstCompositionFrame(object? sender, object e)
-    {
-        CompositionTarget.Rendering -= OnFirstCompositionFrame;
-
-        // Let layout/render callbacks queued at Normal finish before DWM presents the window.
-        DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, RevealNow);
-    }
-
-    private void RevealNow()
+    public void RevealNow()
     {
         if (_revealed)
         {
@@ -108,15 +75,55 @@ public sealed partial class MainWindow : Window
         }
 
         _revealed = true;
-        CompositionTarget.Rendering -= OnFirstCompositionFrame;
-        if (_revealFailsafeTimer is not null)
-        {
-            _revealFailsafeTimer.Stop();
-            _revealFailsafeTimer = null;
-        }
-
         WindowStartupCloak.SetCloaked(this, cloaked: false);
         PerfProbe.Mark("window_revealed");
+
+        // High: custom title bar + cream caption buttons before the next input frame.
+        // Low: update checks / notifications / sounds after first paint settles.
+        DispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, ApplyShellChrome);
+        DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, RunPostRevealWork);
+    }
+
+    private void ApplyShellChrome()
+    {
+        if (_shellChromeApplied)
+        {
+            return;
+        }
+
+        _shellChromeApplied = true;
+
+        // Realizes the x:Load="False" grain overlay (decorative; safe one frame late).
+        if (Content is FrameworkElement root)
+        {
+            _ = root.FindName(nameof(GrainOverlay));
+        }
+
+        var titleBarStart = System.Diagnostics.Stopwatch.GetTimestamp();
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(AppTitleBar);
+        AppTitleBar.Visibility = Visibility.Visible;
+        var paper = Windows.UI.Color.FromArgb(0xFF, 0xE8, 0xDF, 0xD0);
+        AppWindow.TitleBar.ButtonBackgroundColor = paper;
+        PerfProbe.MarkDuration("mainwindow_titlebar", titleBarStart);
+
+        var iconStart = System.Diagnostics.Stopwatch.GetTimestamp();
+        AppWindow.SetIcon("Assets/AppIcon.ico");
+        PerfProbe.MarkDuration("mainwindow_seticon", iconStart);
+    }
+
+    private void RunPostRevealWork()
+    {
+        var wireStart = System.Diagnostics.Stopwatch.GetTimestamp();
+        App.HistoryViewModel.RerunRequested += (_, entry) => RerunCompression(entry);
+        UpdateService.StateChanged += (_, _) => DispatcherQueue.TryEnqueue(RefreshUpdateBubble);
+        Activated += MainWindow_Activated;
+        RefreshUpdateBubble();
+        PerfProbe.MarkDuration("mainwindow_deferred_wireup", wireStart);
+
+        // Always revalidate on launch so a release published after the last session is noticed.
+        _ = UpdateService.CheckForUpdatesAsync(force: true);
+        App.InitializeDeferredServices();
     }
 
     public void NavigateToCompress()
@@ -133,61 +140,30 @@ public sealed partial class MainWindow : Window
         App.CompressViewModel.RequestRerun(entry);
     }
 
-    private AppUpdateService UpdateService =>
-        _updateService ?? throw new InvalidOperationException("Deferred shell has not been applied yet.");
+    // Created on demand: reading the update cache is file + JSON work that must not run
+    // before the window is revealed.
+    private AppUpdateService UpdateService => _updateService ??= new AppUpdateService();
 
-    private DispatcherQueueTimer PageEvictTimer =>
-        _pageEvictTimer ?? throw new InvalidOperationException("Deferred shell has not been applied yet.");
+    private DispatcherQueueTimer PageEvictTimer
+    {
+        get
+        {
+            if (_pageEvictTimer is null)
+            {
+                _pageEvictTimer = DispatcherQueue.CreateTimer();
+                _pageEvictTimer.IsRepeating = false;
+                _pageEvictTimer.Interval = PageEvictDelay;
+                _pageEvictTimer.Tick += PageEvictTimer_Tick;
+            }
+
+            return _pageEvictTimer;
+        }
+    }
 
     private void ConfigureSystemBackdrop()
     {
         // Cottagecore paper UI uses a solid cream surface; skip system acrylic/mica.
         SystemBackdrop = null;
-    }
-
-    private void ApplyDeferredShell()
-    {
-        if (_deferredShellApplied)
-        {
-            return;
-        }
-
-        _deferredShellApplied = true;
-
-        // Realizes the x:Load="False" grain overlay (bitmap decode off the tti path).
-        if (Content is FrameworkElement root)
-        {
-            _ = root.FindName(nameof(GrainOverlay));
-        }
-
-        var wireStart = System.Diagnostics.Stopwatch.GetTimestamp();
-        _updateService = new AppUpdateService();
-        App.HistoryViewModel.RerunRequested += (_, entry) => RerunCompression(entry);
-        _updateService.StateChanged += (_, _) => DispatcherQueue.TryEnqueue(RefreshUpdateBubble);
-        Activated += MainWindow_Activated;
-        RefreshUpdateBubble();
-
-        _pageEvictTimer = DispatcherQueue.CreateTimer();
-        _pageEvictTimer.IsRepeating = false;
-        _pageEvictTimer.Interval = PageEvictDelay;
-        _pageEvictTimer.Tick += PageEvictTimer_Tick;
-        PerfProbe.MarkDuration("mainwindow_deferred_wireup", wireStart);
-
-        var titleBarStart = System.Diagnostics.Stopwatch.GetTimestamp();
-        // Match paper surface so any pre-composition HWND chrome is cream, not white.
-        var paper = Windows.UI.Color.FromArgb(0xFF, 0xE8, 0xDF, 0xD0);
-        var titleBar = AppWindow.TitleBar;
-        titleBar.BackgroundColor = paper;
-        titleBar.InactiveBackgroundColor = paper;
-        titleBar.ButtonBackgroundColor = paper;
-        titleBar.ButtonInactiveBackgroundColor = paper;
-        ExtendsContentIntoTitleBar = true;
-        SetTitleBar(AppTitleBar);
-        PerfProbe.MarkDuration("mainwindow_titlebar", titleBarStart);
-
-        var iconStart = System.Diagnostics.Stopwatch.GetTimestamp();
-        AppWindow.SetIcon("Assets/AppIcon.ico");
-        PerfProbe.MarkDuration("mainwindow_seticon", iconStart);
     }
 
     private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)

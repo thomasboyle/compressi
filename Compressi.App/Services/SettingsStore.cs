@@ -5,7 +5,6 @@ namespace Compressi_App.Services;
 
 public sealed class SettingsStore
 {
-    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
     private readonly string _settingsPath;
     private readonly object _gate = new();
     private AppSettings? _snapshot;
@@ -30,6 +29,13 @@ public sealed class SettingsStore
                 return Clone(_snapshot);
             }
 
+            if (SettingsPreload.TryTake(out var preloaded, out var preloadError))
+            {
+                LoadedFromDefaultsAfterError = preloadError;
+                _snapshot = preloaded;
+                return Clone(_snapshot);
+            }
+
             LoadedFromDefaultsAfterError = false;
 
             if (!File.Exists(_settingsPath))
@@ -41,7 +47,7 @@ public sealed class SettingsStore
             try
             {
                 var json = File.ReadAllText(_settingsPath);
-                _snapshot = JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? CreateDefault();
+                _snapshot = JsonSerializer.Deserialize(json, SettingsJsonContext.Default.AppSettings) ?? CreateDefault();
             }
             catch
             {
@@ -57,7 +63,7 @@ public sealed class SettingsStore
     {
         lock (_gate)
         {
-            var json = JsonSerializer.Serialize(settings, JsonOptions);
+            var json = JsonSerializer.Serialize(settings, SettingsJsonContext.Default.AppSettings);
             File.WriteAllText(_settingsPath, json);
             _snapshot = Clone(settings);
             LoadedFromDefaultsAfterError = false;

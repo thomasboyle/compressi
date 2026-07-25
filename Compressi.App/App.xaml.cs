@@ -54,22 +54,28 @@ public partial class App : Application
         // Theme needs MainWindow.Content; the earlier call was a no-op for the window root.
         ThemeService.ApplyTheme(settings.Theme);
 
-        // Build Compress content + title-bar chrome before Activate.
-        MainWindow.ShowInitialPage();
-
-        // Activate while DWM-cloaked, then reveal after the first composition frame.
+        // Activate while cloaked before building Compress content so composition/swapchain
+        // setup overlaps page construction. Reveal when the full Compress UI is ready;
+        // title-bar chrome is applied immediately after reveal (still on first paint path
+        // for caption buttons, but no longer blocks DWM uncloak).
         MainWindow.Activate();
         PerfProbe.Mark("main_window_activate");
-        MainWindow.RevealAfterFirstFrame();
 
-        // Notification registration and sound synthesis are not required for first paint.
-        MainWindow.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, InitializeDeferredServices);
+        MainWindow.ShowInitialPage();
+        // Reveal with the full Compress UI. Title-bar customization is the single most
+        // expensive WinUI call (~130 ms first touch) so it runs immediately after uncloak;
+        // AppTitleBar stays collapsed until then to avoid a stacked system+custom chrome.
+        MainWindow.RevealNow();
 
         // FFmpeg encoder probes can take several seconds; never block first paint on them.
         _ = WarmupEncoderDetectionAsync();
     }
 
-    private static void InitializeDeferredServices()
+    /// <summary>
+    /// Notification registration and sound synthesis are not required for first paint;
+    /// <see cref="MainWindow"/> runs this after the window is revealed.
+    /// </summary>
+    internal static void InitializeDeferredServices()
     {
         var notifStart = System.Diagnostics.Stopwatch.GetTimestamp();
         CompletionNotificationService.Initialize();

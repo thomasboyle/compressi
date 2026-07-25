@@ -24,6 +24,8 @@ internal static class PerfProbe
     internal static void Initialize()
     {
         _ = StartTimestamp;
+        // Overlap settings.json I/O with WASDK/App type bring-up on the UI thread.
+        SettingsPreload.Start();
         if (Enabled)
         {
             Mark("module_init");
