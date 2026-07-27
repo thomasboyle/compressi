@@ -27,7 +27,7 @@
             <StaticResource x:Key="MediaTransportControlsFillMediaText" ResourceKey="AppInkBrush" />
             <StaticResource x:Key="MediaTransportControlsFillTimeElapsedText" ResourceKey="AppMutedInkBrush" />
             <StaticResource x:Key="MediaTransportControlsThumbBorderBackground" ResourceKey="StippleButtonBrush" />
-            <FontFamily x:Key="MTCMediaFontFamily">ms-appx:///Assets/Fonts/PixelifySans-Regular.ttf#Pixelify Sans</FontFamily>
+            <FontFamily x:Key="MTCMediaFontFamily">ms-appx:///Assets/Fonts/Monocraft-Regular.ttf#Monocraft</FontFamily>
 
             <StaticResource x:Key="AppBarButtonForeground" ResourceKey="AppInkBrush" />
             <StaticResource x:Key="AppBarButtonForegroundPointerOver" ResourceKey="AppInkBrush" />
@@ -79,7 +79,7 @@
             <StaticResource x:Key="MediaTransportControlsFillMediaText" ResourceKey="AppInkBrush" />
             <StaticResource x:Key="MediaTransportControlsFillTimeElapsedText" ResourceKey="AppMutedInkBrush" />
             <StaticResource x:Key="MediaTransportControlsThumbBorderBackground" ResourceKey="StippleButtonBrush" />
-            <FontFamily x:Key="MTCMediaFontFamily">ms-appx:///Assets/Fonts/PixelifySans-Regular.ttf#Pixelify Sans</FontFamily>
+            <FontFamily x:Key="MTCMediaFontFamily">ms-appx:///Assets/Fonts/Monocraft-Regular.ttf#Monocraft</FontFamily>
 
             <StaticResource x:Key="AppBarButtonForeground" ResourceKey="AppInkBrush" />
             <StaticResource x:Key="AppBarButtonForegroundPointerOver" ResourceKey="AppInkBrush" />
@@ -131,7 +131,7 @@
             <StaticResource x:Key="MediaTransportControlsFillMediaText" ResourceKey="AppInkBrush" />
             <StaticResource x:Key="MediaTransportControlsFillTimeElapsedText" ResourceKey="AppMutedInkBrush" />
             <StaticResource x:Key="MediaTransportControlsThumbBorderBackground" ResourceKey="StippleButtonBrush" />
-            <FontFamily x:Key="MTCMediaFontFamily">ms-appx:///Assets/Fonts/PixelifySans-Regular.ttf#Pixelify Sans</FontFamily>
+            <FontFamily x:Key="MTCMediaFontFamily">ms-appx:///Assets/Fonts/Monocraft-Regular.ttf#Monocraft</FontFamily>
 
             <StaticResource x:Key="AppBarButtonForeground" ResourceKey="AppInkBrush" />
             <StaticResource x:Key="AppBarButtonForegroundPointerOver" ResourceKey="AppInkBrush" />

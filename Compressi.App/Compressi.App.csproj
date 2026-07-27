@@ -67,10 +67,10 @@
     <Content Include="Assets\ui\texture-grain.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Assets\Fonts\PixelifySans-Regular.ttf">
+    <Content Include="Assets\Fonts\Monocraft-Regular.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Assets\Fonts\PixelifySans-Bold.ttf">
+    <Content Include="Assets\Fonts\Monocraft-Bold.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Assets\ffmpeg\ffmpeg.exe" Condition="Exists('Assets\ffmpeg\ffmpeg.exe')">
