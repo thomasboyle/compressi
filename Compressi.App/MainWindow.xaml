@@ -36,6 +36,7 @@
             Height="40"
             Title="Compressi"
             Foreground="{ThemeResource AppInkBrush}"
+            IconSource="{StaticResource AppTitleBarIconSource}"
             Visibility="Collapsed" />
 
         <Border

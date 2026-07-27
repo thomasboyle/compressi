@@ -231,6 +231,10 @@
         DecodePixelWidth="40"
         UriSource="ms-appx:///Assets/ui/nav-about.png" />
 
+    <ImageIconSource
+        x:Key="AppTitleBarIconSource"
+        ImageSource="ms-appx:///Assets/AppLogo.png" />
+
     <CornerRadius x:Key="GlassPanelCornerRadius">10</CornerRadius>
     <CornerRadius x:Key="GlassButtonCornerRadius">4</CornerRadius>
     <CornerRadius x:Key="GlassPillCornerRadius">4</CornerRadius>
