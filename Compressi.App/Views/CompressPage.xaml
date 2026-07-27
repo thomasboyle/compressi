@@ -130,7 +130,6 @@
                                             <TextBlock
                                                 x:Name="StatusBannerTitle"
                                                 Style="{StaticResource BodyTextStyle}"
-                                                FontFamily="{StaticResource AppPixelFontBoldFamily}"
                                                 Visibility="Collapsed" />
                                             <TextBlock
                                                 x:Name="StatusBannerMessage"
@@ -475,7 +474,7 @@
                                 <TextBlock
                                     HorizontalAlignment="Center"
                                     FontSize="16"
-                                    FontFamily="{StaticResource AppPixelFontBoldFamily}"
+                                    FontFamily="{StaticResource AppPixelFontFamily}"
                                     Foreground="{ThemeResource AppInkBrush}"
                                     Text="Your results will appear here"
                                     TextAlignment="Center" />
@@ -510,7 +509,6 @@
                                     Stretch="Uniform" />
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                                     <TextBlock
-                                        FontFamily="{StaticResource AppPixelFontBoldFamily}"
                                         Style="{StaticResource BodyTextStyle}"
                                         Text="Private &amp; Secure" />
                                     <TextBlock
@@ -550,7 +548,6 @@
                                         Foreground="{StaticResource SuccessGreenBrush}"
                                         Glyph="&#xE73E;" />
                                     <TextBlock
-                                        FontFamily="{StaticResource AppPixelFontBoldFamily}"
                                         Foreground="{StaticResource SuccessGreenBrush}"
                                         Style="{StaticResource BodyTextStyle}"
                                         Text="Completed" />
@@ -582,13 +579,11 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock
                                             Grid.Column="1"
-                                            FontFamily="{StaticResource AppPixelFontBoldFamily}"
                                             Foreground="{StaticResource PrimaryBlueBrush}"
                                             Style="{StaticResource BodyTextStyle}"
                                             Text="Original File" />
                                         <TextBlock
                                             Grid.Column="2"
-                                            FontFamily="{StaticResource AppPixelFontBoldFamily}"
                                             Foreground="{StaticResource SuccessGreenBrush}"
                                             Style="{StaticResource BodyTextStyle}"
                                             Text="Compressed File" />

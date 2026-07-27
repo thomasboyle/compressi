@@ -76,7 +76,7 @@
                     <CornerRadius x:Key="NavigationViewItemCornerRadius">4</CornerRadius>
                     <Style TargetType="NavigationViewItem">
                         <Setter Property="Height" Value="44" />
-                        <Setter Property="FontFamily" Value="{StaticResource AppPixelFontBoldFamily}" />
+                        <Setter Property="FontFamily" Value="{StaticResource AppPixelFontFamily}" />
                         <Setter Property="FontSize" Value="14" />
                         <Setter Property="Margin" Value="10,2" />
                     </Style>
@@ -133,7 +133,7 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Spacing="2">
                                     <TextBlock
-                                        FontFamily="{StaticResource AppPixelFontBoldFamily}"
+                                        FontFamily="{StaticResource AppPixelFontFamily}"
                                         FontSize="12"
                                         Foreground="{ThemeResource AppInkBrush}"
                                         Text="Update available" />

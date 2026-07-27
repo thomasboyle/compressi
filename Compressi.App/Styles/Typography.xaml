@@ -5,7 +5,6 @@
 
     <!-- Monocraft (OFL) — monospaced Minecraft-inspired UI font -->
     <FontFamily x:Key="AppPixelFontFamily">/Assets/Fonts/Monocraft-Regular.ttf#Monocraft</FontFamily>
-    <FontFamily x:Key="AppPixelFontBoldFamily">/Assets/Fonts/Monocraft-Bold.ttf#Monocraft Bold</FontFamily>
     <FontFamily x:Key="ContentControlThemeFontFamily">/Assets/Fonts/Monocraft-Regular.ttf#Monocraft</FontFamily>
 
     <x:Double x:Key="FontSizeCaption">12</x:Double>
@@ -20,21 +19,21 @@
     <FontWeight x:Key="FontWeightBold">Bold</FontWeight>
 
     <Style x:Key="DisplayTextStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource AppPixelFontBoldFamily}" />
+        <Setter Property="FontFamily" Value="{StaticResource AppPixelFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeDisplay}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightRegular}" />
         <Setter Property="Foreground" Value="{ThemeResource AppInkBrush}" />
     </Style>
 
     <Style x:Key="TitleTextStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource AppPixelFontBoldFamily}" />
+        <Setter Property="FontFamily" Value="{StaticResource AppPixelFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeTitle}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightRegular}" />
         <Setter Property="Foreground" Value="{ThemeResource AppInkBrush}" />
     </Style>
 
     <Style x:Key="SubtitleTextStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource AppPixelFontBoldFamily}" />
+        <Setter Property="FontFamily" Value="{StaticResource AppPixelFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeSubtitle}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightRegular}" />
         <Setter Property="Foreground" Value="#FF4F5838" />
@@ -56,7 +55,7 @@
     </Style>
 
     <Style x:Key="ResultStatValueStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource AppPixelFontBoldFamily}" />
+        <Setter Property="FontFamily" Value="{StaticResource AppPixelFontFamily}" />
         <Setter Property="FontSize" Value="24" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightRegular}" />
         <Setter Property="Foreground" Value="{ThemeResource AppInkBrush}" />

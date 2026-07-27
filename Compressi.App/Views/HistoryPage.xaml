@@ -51,7 +51,7 @@
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Spacing="4">
                                                 <TextBlock
-                                                    FontFamily="{StaticResource AppPixelFontBoldFamily}"
+                                                    FontFamily="{StaticResource AppPixelFontFamily}"
                                                     Style="{StaticResource BodyTextStyle}"
                                                     Text="{x:Bind SourceName, Mode=OneTime}" />
                                                 <TextBlock
