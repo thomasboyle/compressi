@@ -233,7 +233,7 @@
 
     <ImageIconSource
         x:Key="AppTitleBarIconSource"
-        ImageSource="ms-appx:///Assets/AppLogo.png" />
+        ImageSource="/Assets/AppLogo.png" />
 
     <CornerRadius x:Key="GlassPanelCornerRadius">10</CornerRadius>
     <CornerRadius x:Key="GlassButtonCornerRadius">4</CornerRadius>

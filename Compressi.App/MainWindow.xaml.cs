@@ -43,6 +43,17 @@ public sealed partial class MainWindow : Window
         NavView.SelectedItem = NavView.MenuItems[0];
         _suppressSelectionChanged = false;
         PerfProbe.MarkDuration("mainwindow_wireup", wireStart);
+
+        ApplyWindowIcon();
+    }
+
+    private void ApplyWindowIcon()
+    {
+        var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico");
+        if (File.Exists(iconPath))
+        {
+            AppWindow.SetIcon(iconPath);
+        }
     }
 
     /// <summary>
@@ -106,10 +117,6 @@ public sealed partial class MainWindow : Window
         var paper = Windows.UI.Color.FromArgb(0xFF, 0xE8, 0xDF, 0xD0);
         AppWindow.TitleBar.ButtonBackgroundColor = paper;
         PerfProbe.MarkDuration("mainwindow_titlebar", titleBarStart);
-
-        var iconStart = System.Diagnostics.Stopwatch.GetTimestamp();
-        AppWindow.SetIcon("Assets/AppIcon.ico");
-        PerfProbe.MarkDuration("mainwindow_seticon", iconStart);
     }
 
     private void RunPostRevealWork()
