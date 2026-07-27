@@ -431,7 +431,6 @@
                                         Source="{StaticResource IconLeafBitmap}"
                                         Stretch="Uniform" />
                                     <TextBlock
-                                        FontWeight="{StaticResource FontWeightSemiBold}"
                                         Foreground="{ThemeResource AppInkBrush}"
                                         Text="Start Compression" />
                                 </StackPanel>
@@ -476,7 +475,6 @@
                                 <TextBlock
                                     HorizontalAlignment="Center"
                                     FontSize="16"
-                                    FontWeight="{StaticResource FontWeightSemiBold}"
                                     FontFamily="{StaticResource AppPixelFontBoldFamily}"
                                     Foreground="{ThemeResource AppInkBrush}"
                                     Text="Your results will appear here"
@@ -512,7 +510,7 @@
                                     Stretch="Uniform" />
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                                     <TextBlock
-                                        FontWeight="{StaticResource FontWeightSemiBold}"
+                                        FontFamily="{StaticResource AppPixelFontBoldFamily}"
                                         Style="{StaticResource BodyTextStyle}"
                                         Text="Private &amp; Secure" />
                                     <TextBlock
@@ -552,8 +550,8 @@
                                         Foreground="{StaticResource SuccessGreenBrush}"
                                         Glyph="&#xE73E;" />
                                     <TextBlock
+                                        FontFamily="{StaticResource AppPixelFontBoldFamily}"
                                         Foreground="{StaticResource SuccessGreenBrush}"
-                                        FontWeight="{StaticResource FontWeightSemiBold}"
                                         Style="{StaticResource BodyTextStyle}"
                                         Text="Completed" />
                                 </StackPanel>
@@ -584,13 +582,13 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock
                                             Grid.Column="1"
-                                            FontWeight="{StaticResource FontWeightSemiBold}"
+                                            FontFamily="{StaticResource AppPixelFontBoldFamily}"
                                             Foreground="{StaticResource PrimaryBlueBrush}"
                                             Style="{StaticResource BodyTextStyle}"
                                             Text="Original File" />
                                         <TextBlock
                                             Grid.Column="2"
-                                            FontWeight="{StaticResource FontWeightSemiBold}"
+                                            FontFamily="{StaticResource AppPixelFontBoldFamily}"
                                             Foreground="{StaticResource SuccessGreenBrush}"
                                             Style="{StaticResource BodyTextStyle}"
                                             Text="Compressed File" />
