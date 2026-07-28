@@ -49,7 +49,7 @@ internal static class VideoEncoderArgumentBuilder
         int passNumber,
         string passLogFile)
     {
-        AppendCpuAv1BitrateCore(args, threadCount, bitrateKbps, preset, constrainRate: true);
+        AppendCpuAv1BitrateCore(args, threadCount, bitrateKbps, preset);
         args.Add("-pass");
         args.Add(passNumber.ToString(CultureInfo.InvariantCulture));
         args.Add("-passlogfile");
@@ -65,15 +65,14 @@ internal static class VideoEncoderArgumentBuilder
         int bitrateKbps,
         int preset)
     {
-        AppendCpuAv1BitrateCore(args, threadCount, bitrateKbps, preset, constrainRate: true);
+        AppendCpuAv1BitrateCore(args, threadCount, bitrateKbps, preset);
     }
 
     private static void AppendCpuAv1BitrateCore(
         IList<string> args,
         int threadCount,
         int bitrateKbps,
-        int preset,
-        bool constrainRate)
+        int preset)
     {
         var encoder = FfmpegEncoderCatalog.GetCpuAv1Encoder();
         args.Add("-c:v");
@@ -83,7 +82,7 @@ internal static class VideoEncoderArgumentBuilder
 
         // libsvtav1: equal -b:v/-maxrate forces CBR (rc=2), which SVT rejects for
         // RANDOM_ACCESS. Max bitrate is also CRF-only. Use plain -b:v (VBR) instead.
-        if (constrainRate && encoder != "libsvtav1")
+        if (encoder != "libsvtav1")
         {
             args.Add("-maxrate");
             args.Add($"{bitrateKbps}k");

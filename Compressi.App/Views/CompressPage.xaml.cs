@@ -386,9 +386,12 @@ public sealed partial class CompressPage : Page, IAppPage
             ProbeProgressRing.Visibility = ViewModel.IsProbing ? Visibility.Visible : Visibility.Collapsed;
             DropZoneIcon.Visibility = ViewModel.IsProbing ? Visibility.Collapsed : Visibility.Visible;
             DropZoneText.Text = ViewModel.DropZoneMessage;
-            RemoveFileButton.IsEnabled = !ViewModel.IsInputLocked;
             DropZoneHitTarget.IsHitTestVisible = ViewModel.IsDropZoneEnabled;
             BrowseFilesButton.IsEnabled = ViewModel.IsDropZoneEnabled;
+            if (RemoveFileButton is not null)
+            {
+                RemoveFileButton.IsEnabled = !ViewModel.IsInputLocked;
+            }
 
             if (!ViewModel.IsDropZoneEnabled)
             {
@@ -449,11 +452,16 @@ public sealed partial class CompressPage : Page, IAppPage
         {
             if (ViewModel.HasSourceFile)
             {
-                FileChip.Visibility = Visibility.Visible;
+                var chip = EnsureFileChip();
+                chip.Visibility = Visibility.Visible;
                 FileNameText.Text = ViewModel.SourceFileName;
                 FileMetadataText.Text = ViewModel.SourceMetadataLine;
+                if (RemoveFileButton is not null)
+                {
+                    RemoveFileButton.IsEnabled = !ViewModel.IsInputLocked;
+                }
             }
-            else
+            else if (FileChip is not null)
             {
                 FileChip.Visibility = Visibility.Collapsed;
             }
@@ -564,6 +572,26 @@ public sealed partial class CompressPage : Page, IAppPage
         }
 
         return (StackPanel)FindName(nameof(EncodingProgressPanel))!;
+    }
+
+    private Border EnsureStatusBanner()
+    {
+        if (StatusBanner is not null)
+        {
+            return StatusBanner;
+        }
+
+        return (Border)FindName(nameof(StatusBanner))!;
+    }
+
+    private Border EnsureFileChip()
+    {
+        if (FileChip is not null)
+        {
+            return FileChip;
+        }
+
+        return (Border)FindName(nameof(FileChip))!;
     }
 
     private MediaPlayerElement EnsurePreviewPlayer()
@@ -733,8 +761,9 @@ public sealed partial class CompressPage : Page, IAppPage
     {
         if (ViewModel.HasError)
         {
-            StatusBanner.Visibility = Visibility.Visible;
-            StatusBanner.BorderBrush = StatusBannerErrorBorder;
+            var banner = EnsureStatusBanner();
+            banner.Visibility = Visibility.Visible;
+            banner.BorderBrush = StatusBannerErrorBorder;
             StatusBannerTitle.Text = "Something went wrong";
             StatusBannerTitle.Visibility = Visibility.Visible;
             StatusBannerMessage.Text = ViewModel.ErrorMessage ?? string.Empty;
@@ -747,8 +776,9 @@ public sealed partial class CompressPage : Page, IAppPage
 
         if (ViewModel.HasInfo)
         {
-            StatusBanner.Visibility = Visibility.Visible;
-            StatusBanner.BorderBrush = StatusBannerDefaultBorder;
+            var banner = EnsureStatusBanner();
+            banner.Visibility = Visibility.Visible;
+            banner.BorderBrush = StatusBannerDefaultBorder;
             StatusBannerTitle.Text = string.Empty;
             StatusBannerTitle.Visibility = Visibility.Collapsed;
             StatusBannerMessage.Text = ViewModel.InfoMessage ?? string.Empty;
@@ -756,8 +786,11 @@ public sealed partial class CompressPage : Page, IAppPage
             return;
         }
 
-        StatusBanner.Visibility = Visibility.Collapsed;
-        StatusBannerActionButton.Visibility = Visibility.Collapsed;
+        if (StatusBanner is not null)
+        {
+            StatusBanner.Visibility = Visibility.Collapsed;
+            StatusBannerActionButton.Visibility = Visibility.Collapsed;
+        }
     }
 
     private void StatusBannerCloseButton_Click(object sender, RoutedEventArgs e)

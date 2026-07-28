@@ -118,6 +118,7 @@
                             <StackPanel Grid.Row="2" Spacing="8">
                                 <Border
                                     x:Name="StatusBanner"
+                                    x:Load="False"
                                     Style="{StaticResource GlassInfoBannerStyle}"
                                     Visibility="Collapsed">
                                     <Grid ColumnSpacing="10">
@@ -163,6 +164,7 @@
 
                                 <Border
                                     x:Name="FileChip"
+                                    x:Load="False"
                                     Padding="12"
                                     Background="{StaticResource ResultSurfaceBrush}"
                                     BorderBrush="{StaticResource ResultCardBorderBrush}"

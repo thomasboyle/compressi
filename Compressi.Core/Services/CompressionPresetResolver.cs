@@ -23,10 +23,10 @@ public static class CompressionPresetResolver
         var args = CreateBaseArgs(job);
         var (width, height) = ResolveOutputDimensions(job);
 
-        AppendUltraVideoFilters(args, job);
+        // Step: filters (auto-1080 downscale for tall sources) → encoder → forced transcode audio → output
+        AppendVideoFilters(args, job, autoDownscale1080: job.Source.Height > EncodingConstants.UltraMaxHeight);
         AppendEncoderArgs(args, job, EncodingConstants.UltraCrf, EncodingConstants.UltraPreset);
         AppendTranscodedAudioArgs(args, job, EncodingConstants.UltraAudioBitrateKbps);
-
         AppendProgressAndOutput(args, outputPath);
         return SinglePassPlan(outputPath, args, job, width, height);
     }
@@ -41,6 +41,7 @@ public static class CompressionPresetResolver
         var args = CreateBaseArgs(job);
         var (width, height) = ResolveOutputDimensions(job);
 
+        // Step: filters → encoder → audio (passthrough when allowed) → output
         AppendVideoFilters(args, job, autoDownscale1080: false);
         AppendEncoderArgs(args, job, crf, preset);
         if (preferPassthroughAudio)
@@ -69,18 +70,11 @@ public static class CompressionPresetResolver
             Path.GetDirectoryName(outputPath) ?? Environment.CurrentDirectory,
             $"ffmpeg2pass-{Guid.NewGuid():N}");
 
-        var passOne = CreateBaseArgs(job);
-        ApplyEightMbVideoFilters(passOne, job, eightMb.OutputWidth, eightMb.OutputHeight, eightMb.OutputFrameRate);
-        AppendEightMbBitrateArgs(passOne, job, eightMb.VideoBitrateKbps, passNumber: 1, passLogFile);
-        AppendTranscodedAudioArgs(passOne, job, eightMb.AudioBitrateKbps);
-        AppendProgressReporting(passOne);
-        AppendNullOutput(passOne, job.Format);
-
-        var passTwo = CreateBaseArgs(job);
-        ApplyEightMbVideoFilters(passTwo, job, eightMb.OutputWidth, eightMb.OutputHeight, eightMb.OutputFrameRate);
-        AppendEightMbBitrateArgs(passTwo, job, eightMb.VideoBitrateKbps, passNumber: 2, passLogFile);
-        AppendTranscodedAudioArgs(passTwo, job, eightMb.AudioBitrateKbps);
-        AppendProgressAndOutput(passTwo, outputPath);
+        // Step: same video/audio/bitrate chain for both passes; only output target differs.
+        var passOne = BuildEightMbTwoPassArgs(
+            job, eightMb, passLogFile, passNumber: 1, writeOutputPath: null);
+        var passTwo = BuildEightMbTwoPassArgs(
+            job, eightMb, passLogFile, passNumber: 2, writeOutputPath: outputPath);
 
         return new FfmpegEncodePlan
         {
@@ -117,6 +111,32 @@ public static class CompressionPresetResolver
         AppendProgressAndOutput(args, plan.OutputPath);
 
         return new FfmpegEncodePass { Arguments = args };
+    }
+
+    private static List<string> BuildEightMbTwoPassArgs(
+        CompressionJob job,
+        EightMbBitrateResolver.EightMbPlan eightMb,
+        string passLogFile,
+        int passNumber,
+        string? writeOutputPath)
+    {
+        var args = CreateBaseArgs(job);
+        ApplyEightMbVideoFilters(
+            args, job, eightMb.OutputWidth, eightMb.OutputHeight, eightMb.OutputFrameRate);
+        AppendEightMbBitrateArgs(args, job, eightMb.VideoBitrateKbps, passNumber, passLogFile);
+        AppendTranscodedAudioArgs(args, job, eightMb.AudioBitrateKbps);
+
+        if (writeOutputPath is null)
+        {
+            AppendProgressReporting(args);
+            AppendNullOutput(args, job.Format);
+        }
+        else
+        {
+            AppendProgressAndOutput(args, writeOutputPath);
+        }
+
+        return args;
     }
 
     private static FfmpegEncodePlan SinglePassPlan(
@@ -263,11 +283,6 @@ public static class CompressionPresetResolver
         _ => throw new ArgumentOutOfRangeException(nameof(preset), preset, "Unknown compression preset."),
     };
 
-    private static void AppendUltraVideoFilters(List<string> args, CompressionJob job)
-    {
-        AppendVideoFilters(args, job, autoDownscale1080: job.Source.Height > EncodingConstants.UltraMaxHeight);
-    }
-
     private static void AppendVideoFilters(List<string> args, CompressionJob job, bool autoDownscale1080)
     {
         var filters = new List<string>();
@@ -332,9 +347,11 @@ public static class CompressionPresetResolver
         var keepOriginal = job.Advanced?.KeepOriginalAudio == true;
         var audioBitrate = job.Advanced?.AudioBitrateKbps ?? EncodingConstants.DefaultAudioBitrateKbps;
 
+        // WebM: only copy opus when KeepOriginalAudio is on; otherwise always libopus.
+        // MP4/MKV: copy whenever the container accepts the source codec.
         if (format == OutputFormat.WebM)
         {
-            if (keepOriginal && string.Equals(audioCodec, "opus", StringComparison.OrdinalIgnoreCase))
+            if (keepOriginal && CanCopyAudioForContainer(format, audioCodec))
             {
                 args.Add("-c:a");
                 args.Add("copy");
@@ -345,13 +362,6 @@ public static class CompressionPresetResolver
             args.Add("libopus");
             args.Add("-b:a");
             args.Add($"{audioBitrate}k");
-            return;
-        }
-
-        if (keepOriginal && CanCopyAudioForContainer(format, audioCodec))
-        {
-            args.Add("-c:a");
-            args.Add("copy");
             return;
         }
 

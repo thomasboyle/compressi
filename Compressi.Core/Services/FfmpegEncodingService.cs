@@ -56,7 +56,7 @@ public sealed class FfmpegEncodingService : IEncodingService
         IProgress<EncodingProgressState>? progress,
         CancellationToken cancellationToken)
     {
-        // Resolve the encode plan off the UI thread (CPU-only 8 MB plans are non-trivial).
+        // Step: resolve argv plan off the UI thread (CPU-only 8 MB plans are non-trivial).
         var plan = await Task.Run(() => CompressionPresetResolver.Resolve(job), cancellationToken)
             .ConfigureAwait(false);
         var startedAt = DateTimeOffset.UtcNow;
@@ -65,6 +65,7 @@ public sealed class FfmpegEncodingService : IEncodingService
 
         try
         {
+            // Step: run each ffmpeg pass; PassProgressAdapter remaps per-pass % into overall %.
             foreach (var pass in plan.Passes)
             {
                 passIndex++;
@@ -79,6 +80,7 @@ public sealed class FfmpegEncodingService : IEncodingService
 
             var outputLengthBytes = new FileInfo(plan.OutputPath).Length;
 
+            // Step: EightMB overshoot → one corrective single-pass (no second full 2-pass).
             if (job.Preset == CompressionPreset.EightMB
                 && plan.TargetVideoBitrateKbps is int targetBitrate
                 && outputLengthBytes > EncodingConstants.EightMbTargetBytes)
@@ -95,6 +97,7 @@ public sealed class FfmpegEncodingService : IEncodingService
                 outputLengthBytes = new FileInfo(plan.OutputPath).Length;
             }
 
+            // Step: materialize result metadata + final 100% progress report.
             var output = EncodeOutputMetadata.Create(job, plan, outputLengthBytes);
             var elapsed = DateTimeOffset.UtcNow - startedAt;
             var bytesSaved = Math.Max(0, job.Source.FileSizeBytes - output.FileSizeBytes);
@@ -126,6 +129,7 @@ public sealed class FfmpegEncodingService : IEncodingService
         }
         finally
         {
+            // Step: always clean 2-pass log files whether encode succeeded or failed.
             foreach (var pass in plan.Passes)
             {
                 CleanupPassLogs(pass.PassLogFilePrefix);
@@ -180,6 +184,7 @@ public sealed class FfmpegEncodingService : IEncodingService
         IProgress<EncodingProgressState>? progress,
         CancellationToken cancellationToken)
     {
+        // Step: build process start info from the resolved arg list.
         var startInfo = new ProcessStartInfo
         {
             FileName = _ffmpegPath,
@@ -206,6 +211,7 @@ public sealed class FfmpegEncodingService : IEncodingService
             throw new InvalidOperationException("Failed to start ffmpeg.");
         }
 
+        // Step: cancel → kill entire ffmpeg tree (best effort).
         using var cancellationRegistration = cancellationToken.Register(() =>
         {
             try
@@ -221,7 +227,7 @@ public sealed class FfmpegEncodingService : IEncodingService
             }
         });
 
-        // Bound stderr so long encodes cannot retain an unbounded log in the heap.
+        // Step: drain stderr bounded so a long encode cannot pin an unbounded heap log.
         var errorTask = ReadStderrBoundedAsync(process.StandardError, StderrCaptureMaxChars);
 
         try
@@ -237,6 +243,7 @@ public sealed class FfmpegEncodingService : IEncodingService
                 // Best-effort priority adjustment.
             }
 
+            // Step: progress loop — always parse every line; gate only the Report side-effect (~10 Hz).
             var state = new EncodingProgressState();
             var stdout = process.StandardOutput;
             var lastReportTimestamp = 0L;
@@ -273,6 +280,7 @@ public sealed class FfmpegEncodingService : IEncodingService
                 progress.Report(state);
             }
 
+            // Step: wait for exit; surface stderr only on non-zero exit.
             await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 
             if (cancellationToken.IsCancellationRequested)

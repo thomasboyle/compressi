@@ -28,16 +28,18 @@ public static class FfmpegProgressParser
         var key = line.AsSpan(0, separatorIndex).Trim();
         var value = line.AsSpan(separatorIndex + 1).Trim();
 
-        if (key.Equals("out_time_us", StringComparison.Ordinal)
-            && long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var micros))
+        // Flattened key dispatch — one path per progress key, no nested helpers for the common case.
+        if (key.Equals("out_time_us", StringComparison.Ordinal))
         {
-            return UpdateOutTime(state, TimeSpan.FromMicroseconds(micros), totalDuration);
+            return long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var micros)
+                && UpdateOutTime(state, TimeSpan.FromMicroseconds(micros), totalDuration);
         }
 
-        if (key.Equals("out_time_ms", StringComparison.Ordinal)
-            && long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out micros))
+        if (key.Equals("out_time_ms", StringComparison.Ordinal))
         {
-            return UpdateOutTime(state, TimeSpan.FromMicroseconds(micros), totalDuration);
+            // ffmpeg's out_time_ms is microseconds despite the name.
+            return long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var micros)
+                && UpdateOutTime(state, TimeSpan.FromMicroseconds(micros), totalDuration);
         }
 
         if (key.Equals("out_time", StringComparison.Ordinal))
@@ -45,10 +47,10 @@ public static class FfmpegProgressParser
             return UpdateOutTime(state, ParseOutTime(value), totalDuration);
         }
 
-        if (key.Equals("total_size", StringComparison.Ordinal)
-            && long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var size))
+        if (key.Equals("total_size", StringComparison.Ordinal))
         {
-            if (state.OutputSizeBytes == size)
+            if (!long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var size)
+                || state.OutputSizeBytes == size)
             {
                 return false;
             }

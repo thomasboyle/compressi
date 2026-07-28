@@ -43,8 +43,6 @@ public sealed partial class MainWindow : Window
         NavView.SelectedItem = NavView.MenuItems[0];
         _suppressSelectionChanged = false;
         PerfProbe.MarkDuration("mainwindow_wireup", wireStart);
-
-        ApplyWindowIcon();
     }
 
     private void ApplyWindowIcon()
@@ -109,6 +107,9 @@ public sealed partial class MainWindow : Window
         {
             _ = root.FindName(nameof(GrainOverlay));
         }
+
+        // Taskbar icon decode is ~6 ms and not needed before first paint.
+        ApplyWindowIcon();
 
         var titleBarStart = System.Diagnostics.Stopwatch.GetTimestamp();
         ExtendsContentIntoTitleBar = true;
